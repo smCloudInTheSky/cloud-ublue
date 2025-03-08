@@ -34,15 +34,15 @@ if [[ ${BASE_IMAGE_NAME} == 'silverblue' ]]; then
     wget \
       $(curl -s https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest | \
       jq -r ".assets[] | select(.name | test(\"lact-libadwaita.*fedora-$(rpm -E %fedora)\")) | .browser_download_url") \
-      -O /tmp/lact.rpm
+      -O lact.rpm
 else
     echo 'Installing LACT...'
     wget \
       $(curl -s https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest | \
       jq -r ".assets[] | select(.name | test(\"lact-[0-9].*fedora-$(rpm -E %fedora)\")) | .browser_download_url") \
-      -O /tmp/lact.rpm
+      -O lact.rpm
 fi
-dnf install -y /tmp/lact.rpm
+dnf install -y lact.rpm
 systemctl enable lactd
-rm /tmp/lact.rpm
+rm lact.rpm
 echo 'Complete.'
