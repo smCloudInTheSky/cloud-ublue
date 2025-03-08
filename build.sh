@@ -23,9 +23,6 @@ set -ouex pipefail
 
 # systemctl enable podman.socket
 
-#!/usr/bin/bash
-
-
 #### Customization
 
 # Enabling lact on bluefin
@@ -33,7 +30,7 @@ set -ouex pipefail
 IMAGE_INFO="/usr/share/ublue-os/image-info.json"
 BASE_IMAGE_NAME=$(jq -r '."base-image-name"' < $IMAGE_INFO)
 ujust update
-rpm-ostree kargs --append-if-missing=$(printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))")
+rpm-ostree kargs --append-if-missing=$(printf 'amdgpu.ppfeaturemask=0xffffffff\n' )
 if [[ ${BASE_IMAGE_NAME} == 'silverblue' ]]; then
     echo 'Installing LACT Libadwaita...'
     wget \
