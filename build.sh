@@ -43,6 +43,6 @@ else
       -O /tmp/lact.rpm
 fi
 dnf install -y /tmp/lact.rpm
-sudo systemctl enable --now lactd
+systemctl enable --now lactd
 rm /tmp/lact.rpm
 echo 'Complete.'
