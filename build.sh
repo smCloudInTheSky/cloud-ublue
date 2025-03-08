@@ -29,8 +29,6 @@ set -ouex pipefail
 
 IMAGE_INFO="/usr/share/ublue-os/image-info.json"
 BASE_IMAGE_NAME=$(jq -r '."base-image-name"' < $IMAGE_INFO)
-ujust update
-rpm-ostree kargs --append-if-missing=$(printf 'amdgpu.ppfeaturemask=0xffffffff\n' )
 if [[ ${BASE_IMAGE_NAME} == 'silverblue' ]]; then
     echo 'Installing LACT Libadwaita...'
     wget \
@@ -44,7 +42,7 @@ else
       jq -r ".assets[] | select(.name | test(\"lact-[0-9].*fedora-$(rpm -E %fedora)\")) | .browser_download_url") \
       -O /tmp/lact.rpm
 fi
-rpm-ostree install --apply-live -y /tmp/lact.rpm
+dnf install -y /tmp/lact.rpm
 sudo systemctl enable --now lactd
 rm /tmp/lact.rpm
 echo 'Complete.'
