@@ -20,6 +20,7 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf5 -y copr enable ilyaz/LACT
 dnf5 -y install lact
+dnf5 -y install libvirt-devel
 systemctl enable lactd
 dnf5 -y copr disable ilyaz/LACT
 

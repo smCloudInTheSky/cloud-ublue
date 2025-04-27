@@ -2,5 +2,5 @@
 mountpoint = "/"
 minsize = "20 GiB"
 
-[[customizations.kernel]]
-append = "amdgpu.ppfeaturemask=0xffffffff"
+#[[customizations.kernel]]
+#append = "amdgpu.ppfeaturemask=0xffffffff"
