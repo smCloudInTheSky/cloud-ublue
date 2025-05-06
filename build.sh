@@ -19,8 +19,7 @@ set -ouex pipefail
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
 dnf5 -y copr enable ilyaz/LACT
-dnf5 -y install lact
-dnf5 -y install libvirt-devel
+dnf5 -y install lact libvirt-devel mangohud
 systemctl enable lactd
 dnf5 -y copr disable ilyaz/LACT
 
