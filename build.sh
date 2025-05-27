@@ -19,8 +19,7 @@ set -ouex pipefail
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
-dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes
+dnf -y install lact libvirt-devel mangohud pipx vmaf-models libvmaf-devel
 systemctl enable lactd
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
