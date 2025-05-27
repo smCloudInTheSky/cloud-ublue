@@ -22,7 +22,6 @@ dnf -y copr enable ilyaz/LACT
 dnf -y install lact libvirt-devel mangohud pipx vmaf-models libvmaf-devel
 systemctl enable lactd
 dnf -y copr disable ilyaz/LACT
-dnf -y copr disable praiskup/safeeyes
 dnf clean all
 #### Example for enabling a System Unit File
 
