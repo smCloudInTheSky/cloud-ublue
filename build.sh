@@ -20,7 +20,8 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx vmaf-models libvmaf-devel python3-safeeyes edk2-ovmf
+dnf -y install https://packages.openvpn.net/openvpn-openvpn3-epel-repo-1-1.noarch.rpm
+dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes openvpn3-client
 systemctl enable lactd
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
