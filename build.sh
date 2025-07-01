@@ -24,7 +24,6 @@ dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc
 systemctl enable lactd
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
-dnf -y copr disable dsommers/openvpn3
 dnf clean all
 #### Example for enabling a System Unit File
 
