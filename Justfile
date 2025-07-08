@@ -188,7 +188,7 @@ _run-vm $target_image $tag $type $config:
     run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
     run_args+=(--volume "${PWD}/${image_file}":"/boot.${type}")
-    run_args+=(docker.io/qemux/qemu-docker)
+    run_args+=(docker.io/qemux/qemu)
     ${PODMAN} run "${run_args[@]}" &
     xdg-open http://localhost:${port}
     fg "%${PODMAN}"
