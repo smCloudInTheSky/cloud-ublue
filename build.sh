@@ -20,7 +20,7 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel
+dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel power-profiles-daemon power-profiles-daemon-docs
 systemctl enable lactd
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
