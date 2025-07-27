@@ -27,6 +27,11 @@ dnf -y copr disable praiskup/safeeyes
 dnf clean all
 #### Example for enabling a System Unit File
 
+
+## update system flatpak List
+
+cp flatpak/*.list /etc/ublue-os/
+
 # systemctl enable podman.socket
 
 echo 'Complete.'
