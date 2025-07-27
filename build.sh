@@ -29,8 +29,7 @@ dnf clean all
 
 
 ## update system flatpak List
-
-cp flatpak/*.list /etc/ublue-os/
+cp /tmp/*flatpak*.list /etc/ublue-os/
 
 # systemctl enable podman.socket
 
