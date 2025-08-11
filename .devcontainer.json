@@ -1,6 +1,5 @@
+// For format details, see https://aka.ms/devcontainer.json.
 {
-    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-    "features": {
-        "ghcr.io/devcontainers-extra/features/cosign:1": {}
-    }
+  "name": "bluefin-devcontainer",
+  "image": "ghcr.io/ublue-os/devcontainer:latest"
 }
