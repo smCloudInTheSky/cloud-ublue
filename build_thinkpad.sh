@@ -21,8 +21,6 @@ dnf -y swap --from-repo=fedora-multimedia mesa-libGL mesa-libGL
 dnf -y swap --from-repo=fedora-multimedia mesa-libgbm mesa-libgbm
 dnf -y swap --from-repo=fedora-multimedia mesa-va-drivers mesa-va-drivers
 dnf -y swap --from-repo=fedora-multimedia mesa-vulkan-drivers mesa-vulkan-drivers
-dnf -y swap --from-repo=fedora-multimedia mesa-va-drivers mesa-va-drivers-freeworld
-dnf -y swap --from-repo=fedora-multimedia mesa-vdpau-drivers mesa-vdpau-drivers-freeworld
 
 dnf -y copr disable abn/throttled
 dnf -y copr disable sneexy/python-validity
