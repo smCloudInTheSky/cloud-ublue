@@ -16,6 +16,7 @@ FROM ghcr.io/ublue-os/bluefin-dx:stable as cloud-ublue
 COPY build.sh /tmp/build.sh
 COPY flatpak/system-flatpaks.list /tmp/system-flatpaks.list
 COPY flatpak/system-flatpaks-dx.list /tmp/system-flatpaks-dx.list
+COPY cosign.pub /etc/pki/containers/cloud.pub
 
 RUN mkdir -p /var/lib/alternatives && \
     /tmp/build.sh && \
@@ -25,6 +26,7 @@ FROM ghcr.io/ublue-os/bluefin-dx:stable as thinkpad-ublue
 
 COPY build.sh /tmp/build.sh
 COPY build_thinkpad.sh /tmp/build_thinkpad.sh
+COPY cosign.pub /etc/pki/containers/cloud.pub
 COPY flatpak/system-flatpaks.list /tmp/system-flatpaks.list
 COPY flatpak/system-flatpaks-dx.list /tmp/system-flatpaks-dx.list
 RUN mkdir -p /var/lib/alternatives && \
