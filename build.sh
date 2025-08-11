@@ -29,8 +29,8 @@ dnf clean all
 
 
 ## update system flatpak List
-cp /tmp/*flatpak*.list /etc/ublue-os/
+cp /tmp/*system*flatpak*.list /etc/ublue-os/
 
 # systemctl enable podman.socket
 
-echo 'Complete.'
+echo 'Base build complete.'
