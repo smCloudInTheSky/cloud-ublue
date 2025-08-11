@@ -11,7 +11,6 @@ dnf -y install --allowerasing gstreamer1-plugin-vaapi libheif igt-gpu-tools fpri
 dnf -y swap --from-repo=fedora-multimedia ffmpeg-free ffmpeg
 dnf -y swap --from-repo=fedora-multimedia libavcodec-free libavcodec
 dnf -y swap --from-repo=fedora-multimedia libfdk-aac-free libfdk-aac
-dnf -y swap --from-repo=fedora-multimedia intel-media-driver libva-intel-media-driver
 
 dnf -y copr disable abn/throttled
 dnf -y copr disable sneexy/python-validity
