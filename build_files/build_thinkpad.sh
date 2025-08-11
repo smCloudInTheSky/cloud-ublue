@@ -2,8 +2,6 @@
 
 set -ouex pipefail
 
-./ctx/build_files/build.sh
-
 dnf -y copr enable abn/throttled
 dnf -y copr enable sneexy/python-validity
 dnf -y remove tuned tuned-ppd

@@ -85,6 +85,7 @@ jobs:
             io.artifacthub.package.prerelease=false
             containers.bootc=1
           sep-tags: " "
+          targets: ${{ matrix.image }}
           sep-annotations: " "
 
       - name: Build Image
