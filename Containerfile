@@ -1,4 +1,4 @@
-FROM ghcr.io/ublue-os/bluefin-dx:stable
+FROM ghcr.io/ublue-os/bluefin-dx:stable as cloud-ublue
 
 ## Other possible base images include:
 # FROM ghcr.io/ublue-os/bazzite:stable
@@ -19,4 +19,14 @@ COPY flatpak/system-flatpaks-dx.list /tmp/system-flatpaks-dx.list
 
 RUN mkdir -p /var/lib/alternatives && \
     /tmp/build.sh && \
+    ostree container commit
+
+FROM ghcr.io/ublue-os/bluefin-dx:stable as thinkpad-ublue
+
+COPY build.sh /tmp/build.sh
+COPY build_thinkpad.sh /tmp/build_thinkpad.sh
+COPY flatpak/system-flatpaks.list /tmp/system-flatpaks.list
+COPY flatpak/system-flatpaks-dx.list /tmp/system-flatpaks-dx.list
+RUN mkdir -p /var/lib/alternatives && \
+    /tmp/build_thinkpad.sh && \
     ostree container commit
