@@ -22,6 +22,8 @@ RUN mkdir -p /var/lib/alternatives && \
     /tmp/build.sh && \
     ostree container commit
 
+RUN bootc container lint
+
 FROM ghcr.io/ublue-os/bluefin-dx:stable as thinkpad-ublue
 
 COPY build.sh /tmp/build.sh
@@ -32,3 +34,5 @@ COPY flatpak/system-flatpaks-dx.list /tmp/system-flatpaks-dx.list
 RUN mkdir -p /var/lib/alternatives && \
     /tmp/build_thinkpad.sh && \
     ostree container commit
+
+RUN bootc container lint
