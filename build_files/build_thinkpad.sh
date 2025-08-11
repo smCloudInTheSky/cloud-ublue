@@ -2,7 +2,7 @@
 
 set -ouex pipefail
 
-./tmp/build.sh
+./ctx/build_files/build.sh
 
 dnf -y copr enable abn/throttled
 dnf -y copr enable sneexy/python-validity
