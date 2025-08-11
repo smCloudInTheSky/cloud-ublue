@@ -4,7 +4,7 @@ set -ouex pipefail
 
 ./tmp/build.sh
 
-dnf -y config-manager --set-disabled negativo17
+dnf -y config-manager setopt negativo17.enabled=0
 dnf -y copr enable abn/throttled
 dnf -y copr enable sneexy/python-validity
 dnf -y remove tuned tuned-ppd
