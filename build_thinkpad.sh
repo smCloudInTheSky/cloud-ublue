@@ -19,6 +19,7 @@ dnf clean all
 echo -e "\n com.github.d4nj1.tlpui" >> /etc/ublue-os/system-flatpaks.list
 systemctl enable tlp.service
 systemctl enable zcfan.service
+systemctl enable throttled.service
 systemctl enable open-fprintd-resume.service open-fprintd-suspend.service open-fprintd.service python3-validity.service
 systemctl mask systemd-rfkill.service
 systemctl mask systemd-rfkill.socket
