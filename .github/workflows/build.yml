@@ -97,7 +97,7 @@ jobs:
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
           image: ${{ matrix.image }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: ${{ matrix.image }}
+          extra-args: "--target=${{ matrix.image }}"
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
 
