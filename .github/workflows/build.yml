@@ -85,7 +85,6 @@ jobs:
             io.artifacthub.package.prerelease=false
             containers.bootc=1
           sep-tags: " "
-          targets: ${{ matrix.image }}
           sep-annotations: " "
 
       - name: Build Image
@@ -98,6 +97,7 @@ jobs:
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
           image: ${{ matrix.image }}
           tags: ${{ steps.metadata.outputs.tags }}
+          target: ${{ matrix.image }}
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
 
