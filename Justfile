@@ -69,6 +69,7 @@ build $target_image=image_name $tag=default_tag:
     ${PODMAN} build \
         "${BUILD_ARGS[@]}" \
         --pull=newer \
+        --target "${image_name}" \
         --tag "${image_name}:${tag}" \
         .
 
