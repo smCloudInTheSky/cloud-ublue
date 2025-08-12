@@ -60,7 +60,7 @@ build $target_image=image_name $tag=default_tag:
     ver="${tag}-$(date +%Y%m%d)"
 
     BUILD_ARGS=()
-    BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${image_name}")
+    BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${target_image}")
     BUILD_ARGS+=("--build-arg" "IMAGE_VENDOR=${repo_organization}")
     if [[ -z "$(git status -s)" ]]; then
         BUILD_ARGS+=("--build-arg" "SHA_HEAD_SHORT=$(git rev-parse --short HEAD)")
@@ -69,8 +69,8 @@ build $target_image=image_name $tag=default_tag:
     ${PODMAN} build \
         "${BUILD_ARGS[@]}" \
         --pull=newer \
-        --target "${image_name}" \
-        --tag "${image_name}:${tag}" \
+        --target "${target_image}" \
+        --tag "${target_image}:${tag}" \
         .
 
 _rootful_load_image $target_image=image_name $tag=default_tag:
