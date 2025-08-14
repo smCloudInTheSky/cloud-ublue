@@ -22,6 +22,7 @@ dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
 dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon
 systemctl enable lactd
+systemctl enable rasdaemon
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
 dnf clean all
