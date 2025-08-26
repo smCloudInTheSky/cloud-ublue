@@ -90,6 +90,10 @@ Vagrant.configure("2") do |config|
           # Enable nested virtualization if supported
           lv.nested = true if lv.respond_to?(:nested)
         end
+        node.vm.provider "virtualbox" do |v|
+          v.cpus   = 2
+          v.memory = 2048
+        end
       end
 
       config.vm.provision :hostmanager
