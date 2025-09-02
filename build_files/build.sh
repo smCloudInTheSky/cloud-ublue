@@ -20,7 +20,8 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
+dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet
+dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
 systemctl enable lactd
 systemctl enable rasdaemon
 # Zoom install because zoom is broken
