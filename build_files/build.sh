@@ -21,7 +21,17 @@ set -ouex pipefail
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
 dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet
+
+#### Example of preparation for installing a package that requires a symlinked directory
+
+# /opt is symlinked to /var/opt
+# for packages that require it to be writeable do the following:
+rm /opt # this is a file not a directory currently
+mkdir /opt # create the opt directory so files can be installed to it
+# install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
+mv /opt /usr/share/factory # move files installed to /opt to /usr/share/factory so they will be in the final image
+ln -s /var/opt /opt # restore symlink between /var/opt and /opt again
 systemctl enable lactd
 systemctl enable rasdaemon
 # Zoom install because zoom is broken
