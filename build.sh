@@ -20,8 +20,10 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
-
+wget https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm -P /tmp/
+dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel
+dnf -y install /tmp/r2modman-3.2.3.x86_64.rpm
+rm -f /tmp/r2modman-3.2.3.x86_64.rpm
 systemctl enable lactd
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
