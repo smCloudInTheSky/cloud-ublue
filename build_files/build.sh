@@ -30,7 +30,8 @@ rm /opt # this is a file not a directory currently
 mkdir /opt # create the opt directory so files can be installed to it
 # install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
-mv /opt /usr/share/factory # move files installed to /opt to /usr/share/factory so they will be in the final image
+# move files installed to /opt to /usr/share/factory so they will be in the final image
+mv /opt/r2modman /usr/share/factory/var/opt
 ln -s /var/opt /opt # restore symlink between /var/opt and /opt again
 systemctl enable lactd
 systemctl enable rasdaemon
