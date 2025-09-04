@@ -31,13 +31,14 @@ Vagrant.configure("2") do |config|
   config.vm.provision "file", source: "~/.ssh/sesterce.pub", destination: "~/.ssh/sesterce.pub"
   config.vm.provision "shell", inline: <<-SHELL
     cat /home/vagrant/.ssh/sesterce.pub >> /home/vagrant/.ssh/authorized_keys
+    sudo chsh -s /bin/bash vagrant
   SHELL
   # Define roles and ranges
   roles = {
     "postgres" => (1..3),
-    "maas"     => (1..3),
-    "compute"  => (1..3),
+    "maas"     => (1..2),
   }
+#  "compute"  => (1..2),
 
   roles.each do |role, range|
     range.each do |i|
@@ -66,11 +67,11 @@ Vagrant.configure("2") do |config|
         # 1) Bridged network to your local LAN
         # For libvirt, prefer specifying your bridge/NIC: BRIDGE_DEV (e.g., "br0", "eno1").
         if BRIDGE_DEV && !BRIDGE_DEV.empty?
-          node.vm.network "public_network", dev: "#{BRIDGE_DEV}" # or "eth0" or your appropriate network interface
+          node.vm.network "public_network", adapter:1, dev: "#{BRIDGE_DEV}" # or "eth0" or your appropriate network interface
         else
           # If not set, Vagrant/libvirt may try a default. If it fails,
           # set BRIDGE_DEV (e.g. export BRIDGE_DEV=br0) and re-run.
-          node.vm.network "public_network"
+          node.vm.network "public_network", adapter: 1
         end
 
         ## 2) Isolated network shared by all VMs (no forwarding)
@@ -86,13 +87,14 @@ Vagrant.configure("2") do |config|
         # Libvirt provider settings
         node.vm.provider :libvirt do |lv|
           lv.cpus   = 2
-          lv.memory = 2048
+          lv.memory = 1536
           # Enable nested virtualization if supported
           lv.nested = true if lv.respond_to?(:nested)
+
         end
         node.vm.provider "virtualbox" do |v|
           v.cpus   = 2
-          v.memory = 2048
+          v.memory = 1536
         end
       end
 
