@@ -2,7 +2,6 @@
 FROM scratch AS ctx
 COPY build_files /build_files/
 COPY flatpak /flatpak
-COPY system_files /system_files
 
 FROM ghcr.io/ublue-os/bluefin-dx:stable as cloud-ublue
 
