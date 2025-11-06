@@ -34,6 +34,7 @@ dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2m
 # Enable /var/opt to be recreate by systemd tmpfiles feature
 #
 mv /opt/r2modman /var/opt/
+rmdir /opt
 ln -s /var/opt /opt # restore symlink between /var/opt and /opt again
 systemctl enable lactd
 systemctl enable rasdaemon
