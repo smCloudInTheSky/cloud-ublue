@@ -26,15 +26,14 @@ dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firef
 
 # /opt is symlinked to /var/opt
 rm -f /opt
-mkdir -p /opt
+ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
 #
-mv /opt/r2modman /var/opt/
-ln -s /var/opt /opt # restore symlink between /var/opt and /opt again
+ls -lah /var/opt/
 systemctl enable lactd
 systemctl enable rasdaemon
 # Zoom install because zoom is broken
