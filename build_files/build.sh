@@ -20,7 +20,7 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet
+dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet
 
 #### Example of preparation for installing a package that requires a symlinked directory
 
@@ -33,7 +33,9 @@ dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2m
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
 #
-ls -lah /var/opt/
+# log command to check things
+# ls -lah /var/opt/
+
 systemctl enable lactd
 systemctl enable rasdaemon
 # Zoom install because zoom is broken
