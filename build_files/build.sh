@@ -33,7 +33,9 @@ dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2m
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
 #
-ls -lah /var/opt/
+# log command to check things
+# ls -lah /var/opt/
+
 systemctl enable lactd
 systemctl enable rasdaemon
 # Zoom install because zoom is broken
