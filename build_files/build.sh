@@ -44,7 +44,6 @@ EOF
 rpm-ostree -y install netbird
 
 netbird service install || true
-netbird service start || true
 
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
