@@ -30,6 +30,22 @@ ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
+
+cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
+[NetBird]
+name=NetBird
+baseurl=https://pkgs.netbird.io/yum/
+enabled=1
+gpgcheck=0
+gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
+repo_gpgcheck=1
+EOF
+
+rpm-ostree -y install netbird
+
+netbird service install || true
+netbird service start || true
+
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
 #
