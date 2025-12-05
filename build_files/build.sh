@@ -41,9 +41,9 @@ gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
 repo_gpgcheck=1
 EOF
 
-rpm-ostree -y install netbird
+rpm-ostree -y install netbird netbird-ui
 
-netbird service install || true
+systemctl enable netbird
 
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
