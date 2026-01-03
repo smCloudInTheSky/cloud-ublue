@@ -27,17 +27,3 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     ostree container commit
 
 RUN bootc container lint
-
-FROM ghcr.io/ublue-os/bazzite-dx-gnome:stable as cloud-gaming
-
-COPY cosign.pub /etc/pki/containers/cloud.pub
-
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=cache,dst=/var/cache \
-    --mount=type=cache,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    mkdir -p /var/lib/alternatives && \
-    /ctx/build_files/build.sh && \
-    ostree container commit
-
-RUN bootc container lint
