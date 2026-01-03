@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        image: [cloud-ublue, thinkpad-ublue]
+        image: [cloud-ublue, thinkpad-ublue, cloud-gaming]
     permissions:
       contents: read
       packages: write

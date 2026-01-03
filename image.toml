@@ -1,6 +1,6 @@
 [[customizations.filesystem]]
 mountpoint = "/"
-minsize = "20 GiB"
+minsize = "50 GiB"
 
 #[[customizations.kernel]]
 #append = "amdgpu.ppfeaturemask=0xffffffff"

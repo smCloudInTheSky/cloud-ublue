@@ -40,6 +40,7 @@ fix:
 [group('Utility')]
 clean:
     #!/usr/bin/bash
+    rm -rf /run/user/1000/containers/ /run/user/1000/libpod/tmp
     set -eoux pipefail
     touch _build
     find *_build* -exec rm -rf {} \;
