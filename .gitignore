@@ -1,3 +1,8 @@
 cosign.key
 _build_*
+<<<<<<< HEAD
 output*
+=======
+output
+_build-*/**
+>>>>>>> template/main
