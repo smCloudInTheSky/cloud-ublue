@@ -28,7 +28,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 
 RUN bootc container lint
 
-FROM ghcr.io/ublue-os/bazzite-gnome-dx:stable as cloud-gaming
+FROM ghcr.io/ublue-os/bazzite-dx-gnome:stable as cloud-gaming
 
 COPY cosign.pub /etc/pki/containers/cloud.pub
 
