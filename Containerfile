@@ -3,7 +3,7 @@ FROM scratch AS ctx
 COPY build_files /build_files/
 COPY flatpak /flatpak
 
-FROM ghcr.io/ublue-os/bluefin-dx:stable@sha256:8406ff60197a4692c471c6978085a0c69a342c5fc85fdb073c7a9c5e8bb14fb7 as cloud-ublue
+FROM ghcr.io/ublue-os/bluefin-dx:stable@sha256:4cdb03b6c40a874e1602c783effbc8a6e5fd0655bd7c6cdc4bd2fcd935c0be66 as cloud-ublue
 
 COPY cosign.pub /etc/pki/containers/cloud.pub
 
