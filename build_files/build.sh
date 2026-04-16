@@ -30,6 +30,7 @@ ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
+dnf install -y https://github.com/skevetter/devpod/releases/latest/download/DevPod_linux_x86_64.rpm
 
 cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
 [NetBird]
