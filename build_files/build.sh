@@ -19,8 +19,8 @@ set -ouex pipefail
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
-dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet libreswan edk2-ovmf numactl-devel ntsync-autoload wine-ntsync mono-core
+# install extra packages
+dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel rasdaemon
 
 #### Example of preparation for installing a package that requires a symlinked directory
 
@@ -29,7 +29,7 @@ rm -f /opt
 ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
-dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
+dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.17/r2modman-3.2.17.x86_64.rpm
 dnf install -y https://github.com/skevetter/devpod/releases/latest/download/DevPod_linux_x86_64.rpm
 
 cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
@@ -56,7 +56,6 @@ systemctl enable lactd
 systemctl enable rasdaemon
 # Zoom install because zoom is broken
 dnf -y copr disable ilyaz/LACT
-dnf -y copr disable praiskup/safeeyes
 dnf clean all
 #### Example for enabling a System Unit File
 
@@ -64,6 +63,8 @@ dnf clean all
 ## update system flatpak List
 cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
 
+
+ls -lah /usr/lib/modules/*/
 # systemctl enable podman.socket
 
 echo 'Base build complete.'

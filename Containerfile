@@ -7,6 +7,16 @@ FROM ghcr.io/ublue-os/bluefin-dx:stable@sha256:5dabdb773af5b7b36de9f94be04c72e8f
 
 COPY cosign.pub /etc/pki/containers/cloud.pub
 
+
+# Install cachyos kernel
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=tmpfs,dst=/tmp \
+    mkdir -p /var/lib/alternatives && \
+    /ctx/build_files/install-cachyos.sh && \
+    /ctx/build_files/build-initramfs
+
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
