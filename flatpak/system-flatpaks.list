@@ -42,3 +42,4 @@ runtime/com.obsproject.Studio.Plugin.OBSVkCapture/x86_64/stable
 runtime/com.obsproject.Studio.Plugin.Gstreamer/x86_64/stable
 runtime/com.obsproject.Studio.Plugin.GStreamerVaapi/x86_64/stable
 app/org.altlinux.Tuner/x86_64/stable
+io.github.slgobinath.SafeEyes
