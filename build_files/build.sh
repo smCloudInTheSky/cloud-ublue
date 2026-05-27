@@ -20,7 +20,19 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y copr enable praiskup/safeeyes
-dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel s-tui rasdaemon acpica-tools edid-decode telnet libreswan edk2-ovmf numactl-devel ntsync-autoload wine-ntsync mono-core
+dnf -y copr enable bieszczaders/kernel-cachyos
+dnf -y copr enable bieszczaders/kernel-cachyos-addons
+# prepare for cachyos kernel setup
+setsebool -P domain_kernel_load_modules on
+dracut -f
+# switch to cachyos kernel
+rpm-ostree override remove kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra --install kernel-cachyos
+# install extra packages
+dnf -y install lact libvirt-devel mangohud pipx python3-safeeyes keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
+# scx userspace scheduler + tooling
+dnf -y install scx-scheds scx-tools scx-manager
+# switch to cachyos default settings
+dnf -y swap zram-generator-defaults cachyos-settings
 
 #### Example of preparation for installing a package that requires a symlinked directory
 
@@ -31,6 +43,11 @@ ln -sr /opt /var/opt
 # install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.3/r2modman-3.2.3.x86_64.rpm
 dnf install -y https://github.com/skevetter/devpod/releases/latest/download/DevPod_linux_x86_64.rpm
+
+# scx userspace scheduler + tooling
+dnf -y install scx-scheds scx-tools scx-manager
+# switch to cachyos default settings
+dnf -y swap zram-generator-defaults cachyos-settings
 
 cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
 [NetBird]
@@ -57,6 +74,8 @@ systemctl enable rasdaemon
 # Zoom install because zoom is broken
 dnf -y copr disable ilyaz/LACT
 dnf -y copr disable praiskup/safeeyes
+dnf -y copr disable bieszczaders/kernel-cachyos
+dnf -y copr disable bieszczaders/kernel-cachyos-addons
 dnf clean all
 #### Example for enabling a System Unit File
 
