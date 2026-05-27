@@ -20,6 +20,14 @@ for pkg in kernel kernel{-core,-modules,-modules-core,-modules-extra,-tools-libs
     rpm --erase "${pkg}" --nodeps
 done
 
+# cleanup leftovers that are not covered by kernel-* packages for some reason
+rm -rf /usr/lib/modules
+
+mkdir -p /etc/kernel/postinst.d/
+cp /ctx/build_files/99-default /etc/kernel/postinst.d/99-default
+
+chown root:root /etc/kernel/postinst.d/99-default
+chmod u+rx /etc/kernel/postinst.d/99-default
 dnf -y copr enable bieszczaders/kernel-cachyos
 dnf -y copr enable bieszczaders/kernel-cachyos-addons
 dnf -y install kernel-cachyos scx-scheds scx-tools scx-manager

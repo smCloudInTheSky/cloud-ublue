@@ -14,7 +14,8 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     mkdir -p /var/lib/alternatives && \
-    /ctx/build_files/install-cachyos.sh
+    /ctx/build_files/install-cachyos.sh && \
+    /ctx/build_files/build-initramfs
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
