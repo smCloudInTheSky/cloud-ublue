@@ -1,5 +1,0 @@
-#!/bin/sh
-
-set -e
-
-grubby --set-default=/boot/$(ls /boot | grep vmlinuz.*cachy | sort -V | tail -1)
