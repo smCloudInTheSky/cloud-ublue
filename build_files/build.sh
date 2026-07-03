@@ -29,7 +29,7 @@ rm -f /opt
 ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
-dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.17/r2modman-3.2.17.x86_64.rpm
+dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.18/r2modman-3.2.18.x86_64.rpm
 dnf install -y https://github.com/skevetter/devpod/releases/latest/download/DevPod_linux_x86_64.rpm
 
 cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
@@ -59,10 +59,8 @@ dnf -y copr disable ilyaz/LACT
 dnf clean all
 #### Example for enabling a System Unit File
 
-
 ## update system flatpak List
 cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
-
 
 ls -lah /usr/lib/modules/*/
 # systemctl enable podman.socket
