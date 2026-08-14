@@ -137,7 +137,13 @@ Additional ThinkPad-specific customizations:
 
 **Dependabot:** Weekly updates for GitHub Actions
 
-**Renovate:** Best practices config, auto-merges pin/digest updates, disabled for container digests in workflows
+**Renovate:** Best practices config with:
+- Auto-merge for `pin`, `pinDigest`, and `digest` updates
+- GitHub Actions tracking (12 actions across build.yml & build-disk.yml)
+- Docker base image tracking (`bluefin:stable`, `bootc-image-builder:latest`)
+- **Custom regex managers** for direct RPM installs:
+  - `r2modmanPlus` (ebkr/r2modmanPlus GitHub releases)
+  - `Devsy` (devsy-org/devsy GitHub releases — requires pinning from `latest` first)
 
 ---
 
@@ -210,6 +216,12 @@ just build-iso-gnome
 | `netbird` | VPN mesh networking | build.sh (custom repo) |
 | `abn/throttled` | CPU throttling daemon | build_thinkpad.sh |
 | `sneexy/python-validity` | Fingerprint reader support | build_thinkpad.sh |
+
+### Direct RPM Installs (Tracked by Renovate)
+| Package | Repo | Current Version | Tracking |
+|---------|------|-----------------|----------|
+| `r2modmanPlus` | ebkr/r2modmanPlus | v3.2.18 |  GitHub releases |
+| `Devsy` | devsy-org/devsy | **uses `latest`** |  GitHub releases (needs pinning) |
 
 ---
 
