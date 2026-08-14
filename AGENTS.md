@@ -221,7 +221,7 @@ just build-iso-gnome
 | Package | Repo | Current Version | Tracking |
 |---------|------|-----------------|----------|
 | `r2modmanPlus` | ebkr/r2modmanPlus | v3.2.18 |  GitHub releases |
-| `Devsy` | devsy-org/devsy | **uses `latest`** |  GitHub releases (needs pinning) |
+| `Devsy` | devsy-org/devsy | v1.15.0|  GitHub releases |
 
 ---
 
