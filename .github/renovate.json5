@@ -8,14 +8,48 @@
 
   "packageRules": [
     {
+      "description": "Auto-merge pin, pinDigest, and digest updates for all dependencies",
       "automerge": true,
-      "matchUpdateTypes": ["pin", "pinDigest"]
+      "matchUpdateTypes": ["pin", "pinDigest", "digest"]
     },
     {
-      "enabled": false,
-      "matchUpdateTypes": ["digest", "pinDigest", "pin"],
+      "description": "Enable GitHub Actions updates (they are container deps but should be managed)",
+      "enabled": true,
       "matchDepTypes": ["container"],
       "matchFileNames": [".github/workflows/**.yaml", ".github/workflows/**.yml"],
+      "matchDatasources": ["github-actions"],
+      "groupName": "github-actions"
     },
+    {
+      "description": "Group container base image updates",
+      "matchDepTypes": ["container"],
+      "matchDatasources": ["docker"],
+      "groupName": "base-images"
+    }
+  ],
+
+  "docker": {
+    "fileMatch": ["Containerfile", "disk_config/*.toml"]
+  },
+
+  "regexManagers": [
+    {
+      "fileMatch": ["build_files/build.sh"],
+      "matchStrings": [
+        "r2modmanPlus/releases/download/v(?<version>[\\d.]+)/"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "ebkr/r2modmanPlus",
+      "versioningTemplate": "semver"
+    },
+    {
+      "fileMatch": ["build_files/build.sh"],
+      "matchStrings": [
+        "devsy-org/devsy/releases/download/v(?<version>[\\d.]+)/"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "devsy-org/devsy",
+      "versioningTemplate": "semver"
+    }
   ]
 }
