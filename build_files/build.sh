@@ -19,9 +19,9 @@ set -ouex pipefail
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
+dnf -y config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 # install extra packages
-dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel rasdaemon
-
+dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel rasdaemon docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 #### Example of preparation for installing a package that requires a symlinked directory
 
 # /opt is symlinked to /var/opt
@@ -31,6 +31,7 @@ ln -sr /opt /var/opt
 # install package (dnf5 -y install .....)
 dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.18/r2modman-3.2.18.x86_64.rpm
 dnf install -y https://github.com/devsy-org/devsy/releases/download/v1.15.0/Devsy_linux_x86_64.rpm
+
 
 cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
 [NetBird]
