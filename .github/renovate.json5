@@ -30,15 +30,19 @@
 
   "customManagers": [
     {
+      // r2modman's release URL contains the version twice (tag path + RPM filename),
+      // so the match spans the whole URL and autoReplaceStringTemplate rewrites both
+      // occurrences (the filename carries no "v" prefix).
       "customType": "regex",
       "managerFilePatterns": ["/build_files/build.sh/"],
       "matchStrings": [
-        "r2modmanPlus/releases/download/v(?<version>[\\d.]+)/"
+        "r2modmanPlus/releases/download/v(?<version>[\\d.]+)/r2modman-[\\d.]+\\.x86_64\\.rpm"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "ebkr/r2modmanPlus",
       "versioningTemplate": "semver",
-      "currentValueTemplate": "v{{version}}"
+      "currentValueTemplate": "v{{version}}",
+      "autoReplaceStringTemplate": "r2modmanPlus/releases/download/{{newValue}}/r2modman-{{replace \"^v\" \"\" newValue}}.x86_64.rpm"
     },
     {
       "customType": "regex",
