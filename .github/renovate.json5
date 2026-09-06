@@ -28,28 +28,28 @@
     }
   ],
 
-  "docker": {
-    "fileMatch": ["Containerfile", "disk_config/*.toml"]
-  },
-
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": ["build_files/build.sh"],
+      "customType": "regex",
+      "managerFilePatterns": ["/build_files/build.sh/"],
       "matchStrings": [
         "r2modmanPlus/releases/download/v(?<version>[\\d.]+)/"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "ebkr/r2modmanPlus",
-      "versioningTemplate": "semver"
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "v{{version}}"
     },
     {
-      "fileMatch": ["build_files/build.sh"],
+      "customType": "regex",
+      "managerFilePatterns": ["/build_files/build.sh/"],
       "matchStrings": [
         "devsy-org/devsy/releases/download/v(?<version>[\\d.]+)/"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "devsy-org/devsy",
-      "versioningTemplate": "semver"
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "v{{version}}"
     }
   ]
 }
