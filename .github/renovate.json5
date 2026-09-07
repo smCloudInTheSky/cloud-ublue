@@ -25,6 +25,13 @@
       "matchDepTypes": ["container"],
       "matchDatasources": ["docker"],
       "groupName": "base-images"
+    },
+    {
+      "description": "Auto-merge patch/minor updates for r2modmanPlus and Devsy RPMs (majors stay manual)",
+      "automerge": true,
+      "matchFileNames": ["build_files/build.sh"],
+      "matchDepNames": ["ebkr/r2modmanPlus", "devsy-org/devsy"],
+      "matchUpdateTypes": ["patch", "minor"]
     }
   ],
 
