@@ -21,7 +21,7 @@ set -ouex pipefail
 dnf -y copr enable ilyaz/LACT
 dnf -y config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 # install extra packages
-dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel rasdaemon docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+dnf -y install lact libvirt-devel mangohud pipx keepassxc firefox git-lfs clustershell vmaf-models vmaf libvmaf-devel rasdaemon docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin incus
 #### Example of preparation for installing a package that requires a symlinked directory
 
 # /opt is symlinked to /var/opt
