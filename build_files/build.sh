@@ -21,15 +21,73 @@ set -ouex pipefail
 dnf -y copr enable ilyaz/LACT
 dnf -y config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 # install extra packages
-dnf -y install \
-        libvirt-daemon libvirt-client libvirt-devel \
-        lact mangohud \
-        pipx keepassxc \
-        firefox git-lfs clustershell \
-        vmaf-models vmaf libvmaf-devel \
-        rasdaemon \
-        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-        incus
+
+FEDORA_PACKAGES=$(
+android-tools
+bcc
+bpftop
+bpftrace
+cascadia-code-fonts
+clustershell
+containerd.io
+dbus-x11
+docker-buildx-plugin
+docker-ce
+docker-ce-cli
+docker-compose-plugin
+edk2-ovmf
+firefox
+flatpak-builder
+genisoimage
+git-lfs
+git-subtree
+git-svn
+incus
+incus-agent
+iotop
+keepassxc
+lact
+libvirt
+libvirt-client
+libvirt-daemon
+libvirt-devel
+libvirt-nss
+libvmaf-devel
+lxc
+mangohud
+nicstat
+numactl
+osbuild-selinux
+p7zip
+p7zip-plugins
+pipx
+podman-compose
+podman-machine
+podman-tui
+qemu
+qemu-char-spice
+qemu-device-display-virtio-gpu
+qemu-device-display-virtio-vga
+qemu-device-usb-redirect
+qemu-img
+qemu-system-x86-core
+qemu-user-binfmt
+qemu-user-static
+rasdaemon
+sysprof
+tiptop
+trace-cmd
+udica
+util-linux-script
+virt-manager
+virt-v2v
+virt-viewer
+vmaf
+vmaf-models
+wtype
+ydotool
+)
+dnf -y install $FEDORA_PACKAGES
 #### Example of preparation for installing a package that requires a symlinked directory
 
 # /opt is symlinked to /var/opt
