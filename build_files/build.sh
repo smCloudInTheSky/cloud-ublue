@@ -121,6 +121,9 @@ systemctl enable netbird
 
 systemctl enable lactd
 systemctl enable rasdaemon
+systemctl enable docker.socket
+systemctl enable podman.socket
+systemctl enable libvirt-workaround.service
 # Zoom install because zoom is broken
 dnf -y copr disable ilyaz/LACT
 dnf clean all
