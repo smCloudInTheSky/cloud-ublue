@@ -20,6 +20,10 @@ set -ouex pipefail
 # dnf5 -y copr disable ublue-os/staging
 dnf -y copr enable ilyaz/LACT
 dnf -y config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+dnf -y install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release terra-gpg-keys
+dnf -y install terra-release-mesa terra-release-extras
+dnf5 -y config-manager setopt "*terra*".priority=1 "*terra*".exclude="nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd"
+dnf5 -y config-manager setopt "terra-mesa".enabled=false
 # install extra packages
 
 FEDORA_PACKAGES=(
@@ -54,7 +58,6 @@ FEDORA_PACKAGES=(
     libvirt-nss
     libvmaf-devel
     lxc
-    mangohud
     nicstat
     numactl
     osbuild-selinux
@@ -85,9 +88,39 @@ FEDORA_PACKAGES=(
     vmaf
     vmaf-models
     wtype
+    winetricks
     ydotool
 )
+
+STEAM_PACKAGES=(
+    terra-gamescope.x86_64
+    terra-gamescope-libs.x86_64
+    terra-gamescope-libs.i686
+    umu-wrapper
+    umu-launcher
+    dbus-x11
+    xrandr
+    evtest
+    xdg-user-dirs
+    xdg-terminal-exec
+    gobject-introspection
+    libFAudio.x86_64
+    libFAudio.i686
+    vkBasalt.x86_64
+    vkBasalt.i686
+    terra-mangohud.x86_64
+    terra-mangohud.i686
+    obs-studio-plugin-vkcapture-hook-libs.x86_64
+    obs-studio-plugin-vkcapture-hook-libs.i686
+    openxr
+    openxr-libs
+)
+
+
 dnf -y install "${FEDORA_PACKAGES[@]}"
+# Install steam packages
+dnf --enable-repo=terra-mesa --enable-repo=terra --enable-repo=terra-extras  -y install "${STEAM_PACKAGES[@]}"
+dnf --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=False -y install steam lutris
 #### Example of preparation for installing a package that requires a symlinked directory
 
 # /opt is symlinked to /var/opt
