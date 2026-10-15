@@ -164,7 +164,6 @@ dnf clean all
 ## update system flatpak List
 cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
 
-ls -lah /usr/lib/modules/*/
-# systemctl enable podman.socket
+systemctl enable podman.socket
 
 echo 'Base build complete.'
