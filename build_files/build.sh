@@ -22,8 +22,9 @@ dnf -y copr enable ilyaz/LACT
 dnf -y config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 dnf -y install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release terra-gpg-keys
 dnf -y install terra-release-mesa terra-release-extras
-dnf5 -y config-manager setopt "*terra*".priority=1 "*terra*".exclude="nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd"
-dnf5 -y config-manager setopt "terra-mesa".enabled=false
+dnf -y config-manager setopt "*terra*".priority=1 "*terra*".exclude="nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd"
+dnf -y config-manager setopt "terra-mesa".enabled=false
+dnf -y config-manager setopt "*fedora*".exclude="steam mangohud"
 # install extra packages
 
 FEDORA_PACKAGES=(
@@ -115,7 +116,6 @@ STEAM_PACKAGES=(
     openxr
     openxr-libs
 )
-
 
 dnf -y install "${FEDORA_PACKAGES[@]}"
 # Install steam packages
