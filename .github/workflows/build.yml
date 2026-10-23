@@ -125,13 +125,18 @@ jobs:
               id: rechunk
               run: |
                 IMG="localhost/${{ matrix.image }}:${{ env.DEFAULT_TAG }}"
-                export CHUNKAH_CONFIG_STR="$(podman inspect "${IMG}")"
+                CHUNKAH_CONFIG="$(mktemp)"
+                trap 'rm -f "${CHUNKAH_CONFIG}"' EXIT
+                podman inspect "${IMG}" > "${CHUNKAH_CONFIG}"
+                chmod 644 "${CHUNKAH_CONFIG}"
                 podman run --rm \
                   --cap-add=DAC_READ_SEARCH \
                   --security-opt=label=disable \
                   --mount=type=image,src="${IMG}",dest=/chunkah \
-                  -e CHUNKAH_CONFIG_STR \
+                  --mount=type=bind,src="${CHUNKAH_CONFIG}",dest=/tmp/chunkah-config.json,ro \
                   registry.access.redhat.com/hi/chunkah:latest build \
+                    --config /tmp/chunkah-config.json \
+                    --prune /sysroot/
                     -t "localhost/${{ matrix.image }}-chunked:${{ env.DEFAULT_TAG }}" | podman load
             ## Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
             ## This does not make your image faster to download, just provides better resumability and fixes a few errors.
