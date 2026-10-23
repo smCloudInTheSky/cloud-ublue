@@ -123,8 +123,8 @@ jobs:
 
             - name: List running containers
               run: |
-                docker ps || true
-                podman ps || true
+                docker images || true
+                podman images || true
 
             # Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
             # This does not make your image faster to download, just provides better resumability and fixes a few errors.
