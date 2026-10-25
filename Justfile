@@ -1,4 +1,4 @@
-export repo_organization := env("GITHUB_REPOSITORY_OWNER", "smcloudinthesky")
+export repo_organization := lowercase(env("GITHUB_REPOSITORY_OWNER", "smcloudinthesky"))
 rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1@sha256:2627cbf92ca60ab7372070dcf93b40f457926f301509ffba47a04d6a9e1ddaf7"
 export image_name := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
@@ -365,7 +365,7 @@ rechunk $image="cloud-ublue" $tag="latest" $flavor="main" ghcr="0" pipeline="0":
         --volume "$PWD:/var/git" \
         --volume cache_ostree:/var/ostree \
         --env REPO=/var/ostree/repo \
-        --env PREV_REF=ghcr.io/ublue-os/"${image_name}":"${tag}" \
+        --env PREV_REF=ghcr.io/{{ repo_organization }}/"${image_name}":"${tag}" \
         --env OUT_NAME="$OUT_NAME" \
         --env LABELS="${LABELS}" \
         --env "DESCRIPTION='An interpretation of the Ubuntu spirit built on Fedora technology'" \

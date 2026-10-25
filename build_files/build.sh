@@ -1,7 +1,8 @@
 #!/bin/bash
 
-set -ouex pipefail
+set -oue pipefail
 
+DNF_CMD="dnf -y"
 ### Install packages
 
 # Packages can be installed from any enabled yum repo on the image.
@@ -18,13 +19,16 @@ set -ouex pipefail
 # dnf5 -y install package
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
-dnf -y copr enable ilyaz/LACT
-dnf -y config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
-dnf -y install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release terra-gpg-keys
-dnf -y install terra-release-mesa terra-release-extras
-dnf -y config-manager setopt "*terra*".priority=1 "*terra*".exclude="nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd"
-dnf -y config-manager setopt "terra-mesa".enabled=false
-dnf -y config-manager setopt "*fedora*".exclude="steam mangohud"
+
+echo "::group:: Install base packages"
+${DNF_CMD} remove tailscale
+${DNF_CMD} copr enable ilyaz/LACT
+${DNF_CMD} config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+${DNF_CMD} install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release terra-gpg-keys
+${DNF_CMD} install terra-release-mesa terra-release-extras
+${DNF_CMD} config-manager setopt "*terra*".priority=1 "*terra*".exclude="nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd"
+${DNF_CMD} config-manager setopt "terra-mesa".enabled=false
+${DNF_CMD} config-manager setopt "*fedora*".exclude="steam mangohud"
 # install extra packages
 
 FEDORA_PACKAGES=(
@@ -120,21 +124,25 @@ STEAM_PACKAGES=(
     openxr-libs
 )
 
-dnf -y install "${FEDORA_PACKAGES[@]}"
+${DNF_CMD} install "${FEDORA_PACKAGES[@]}"
 # Install steam packages
-dnf --enable-repo=terra-mesa --enable-repo=terra --enable-repo=terra-extras  -y install "${STEAM_PACKAGES[@]}"
-dnf --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=False -y install steam lutris
+${DNF_CMD} --enable-repo=terra-mesa --enable-repo=terra --enable-repo=terra-extras install "${STEAM_PACKAGES[@]}"
+${DNF_CMD} --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=False install steam lutris
 #### Example of preparation for installing a package that requires a symlinked directory
 
+echo "::endgroup::"
 # /opt is symlinked to /var/opt
 rm -f /opt
 ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
-dnf install -y https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm
-dnf install -y https://github.com/devsy-org/devsy/releases/download/v1.20.0/Devsy_linux_x86_64.rpm
+echo "::group:: Install devsy/r2modman"
+${DNF_CMD} install https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm
+${DNF_CMD} install https://github.com/devsy-org/devsy/releases/download/v1.20.0/Devsy_linux_x86_64.rpm
 
 
+echo "::endgroup::"
+echo "::group:: Install Netbird"
 cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
 [NetBird]
 name=NetBird
@@ -149,6 +157,8 @@ rpm-ostree -y install netbird netbird-ui
 
 systemctl enable netbird
 
+echo "::endgroup::"
+echo "::group:: Enable services + cleanup"
 # move files installed to /opt to /usr/share/factory so they will be in the final image
 # Enable /var/opt to be recreate by systemd tmpfiles feature
 #
@@ -160,7 +170,7 @@ systemctl enable rasdaemon
 systemctl enable docker.socket
 systemctl enable podman.socket
 # Zoom install because zoom is broken
-dnf -y copr disable ilyaz/LACT
+${DNF_CMD} copr disable ilyaz/LACT
 dnf clean all
 #### Example for enabling a System Unit File
 
@@ -168,5 +178,6 @@ dnf clean all
 cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
 
 systemctl enable podman.socket
+echo "::endgroup::"
 
 echo 'Base build complete.'
