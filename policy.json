@@ -1,0 +1,20 @@
+{
+  "default": [
+    { "type": "insecureAcceptAnything" }
+  ],
+  "transports": {
+    "docker": {
+      "ghcr.io/ublue-os/legacy-rechunk": [
+        {
+          "type": "insecureAcceptAnything"
+        }
+      ],
+      "ghcr.io/ublue-os": [
+        {
+          "type": "sigstoreSigned",
+          "keyPath": "/etc/pki/containers/ublue-os.pub"
+        }
+      ]
+    }
+  }
+}

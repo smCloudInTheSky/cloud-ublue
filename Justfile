@@ -1,5 +1,5 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "smcloudinthesky")
-rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1-x86_64@sha256:2627cbf92ca60ab7372070dcf93b40f457926f301509ffba47a04d6a9e1ddaf7"
+rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1@sha256:2627cbf92ca60ab7372070dcf93b40f457926f301509ffba47a04d6a9e1ddaf7"
 export image_name := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
@@ -324,6 +324,7 @@ rechunk $image="cloud-ublue" $tag="latest" $flavor="main" ghcr="0" pipeline="0":
     # Run Rechunker's Prune
     ${SUDOIF} ${PODMAN} run --rm \
         --pull=${PULL_POLICY} \
+        --signature-policy=policy.json \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
         --env TREE=/var/tree \
@@ -337,6 +338,7 @@ rechunk $image="cloud-ublue" $tag="latest" $flavor="main" ghcr="0" pipeline="0":
     # Run Rechunker's Create
     ${SUDOIF} ${PODMAN} run --rm \
         --security-opt label=disable \
+        --signature-policy=policy.json \
         --volume "$MOUNT":/var/tree \
         --volume "cache_ostree:/var/ostree" \
         --env TREE=/var/tree \
@@ -357,6 +359,7 @@ rechunk $image="cloud-ublue" $tag="latest" $flavor="main" ghcr="0" pipeline="0":
     # Run Rechunker
     ${SUDOIF} ${PODMAN} run --rm \
         --pull=${PULL_POLICY} \
+        --signature-policy=policy.json \
         --security-opt label=disable \
         --volume "$PWD:/workspace" \
         --volume "$PWD:/var/git" \
