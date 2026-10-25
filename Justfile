@@ -3,6 +3,9 @@ rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1-x86_64@sha256:2627cbf
 export image_name := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
+export SUDOIF := if `id -u` == "0" { "" } else { "sudo" }
+export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
+export PULL_POLICY := if PODMAN =~ "docker" { "missing" } else { "newer" }
 just := just_executable()
 images := '(
     [cloud-ublue]=cloud-ublue
@@ -531,6 +534,20 @@ validate $image $tag $flavor:
         exit 1
     fi
 
+
+# Image Name
+[group('Utility')]
+[private]
+image_name image="bluefin" tag="latest" flavor="main":
+    #!/usr/bin/bash
+    set -eou pipefail
+    {{ just }} validate {{ image }} {{ tag }} {{ flavor }}
+    if [[ "{{ flavor }}" =~ main ]]; then
+        image_name={{ image }}
+    else
+        image_name="{{ image }}-{{ flavor }}"
+    fi
+    echo "${image_name}"
 
 # Runs shfmt on all Bash scripts
 format:
