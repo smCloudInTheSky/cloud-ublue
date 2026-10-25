@@ -3,6 +3,7 @@ rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1-x86_64@sha256:2627cbf
 export image_name := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
+just := just_executable()
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
