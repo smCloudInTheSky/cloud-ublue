@@ -134,7 +134,9 @@ jobs:
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                echo "::group:: install machinectl"
                 sudo apt install -y systemd-container
+                echo "::endgroup::"
                 $(command -v just) rechunk "${{ matrix.image }}" \
                                   "${{ matrix.stream_name }}" \
                                   "${{ matrix.image_flavor }}" \
