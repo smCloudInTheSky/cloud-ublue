@@ -142,13 +142,29 @@ jobs:
                                   "${{ matrix.image_flavor }}" \
                                   "1"
 
-            - name: Load Image into Podman
+            - name: Load rechunked image into Podman
               id: load-rechunk
               shell: bash
+              env:
+                RECHUNK_TAGS: ${{ steps.metadata.outputs.tags }}
               run: |
-                sudo -E $(command -v just) load-rechunk "${{ matrix.image }}" \
-                                  "${{ matrix.stream_name }}" \
-                                  "${{ matrix.image_flavor }}"
+                image="${{ matrix.image }}"
+                stream="${{ matrix.stream_name }}"
+                read -r -a tags <<< "${RECHUNK_TAGS}"
+
+                # Remove the original build's tags so the push step cannot publish it.
+                for tag in "${tags[@]}"; do
+                  podman untag "localhost/${image}:${tag}" || true
+                done
+
+                just load-rechunk "${image}" "${stream}" "${{ matrix.image_flavor }}"
+
+                rechunked_image=$(podman image inspect "localhost/${image}:${stream}" --format '{{.Id}}')
+                for tag in "${tags[@]}"; do
+                  if [[ "${tag}" != "${stream}" ]]; then
+                    podman tag "${rechunked_image}" "localhost/${image}:${tag}"
+                  fi
+                done
 
             ## Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
             ## This does not make your image faster to download, just provides better resumability and fixes a few errors.
