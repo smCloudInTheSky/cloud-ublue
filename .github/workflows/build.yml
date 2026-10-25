@@ -34,7 +34,7 @@ jobs:
             matrix:
                 image: [cloud-ublue, thinkpad-ublue]
                 stream_name: [latest]
-                flavor: [main]
+                image_flavor: [main]
         permissions:
             contents: read
             packages: write
