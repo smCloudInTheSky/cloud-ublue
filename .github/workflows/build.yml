@@ -144,7 +144,7 @@ jobs:
               id: load-rechunk
               shell: bash
               run: |
-                sudo -E $(command -v just) load-rechunk "${{ matrix.base_name }}" \
+                sudo -E $(command -v just) load-rechunk "${{ matrix.image }}" \
                                   "${{ matrix.stream_name }}" \
                                   "${{ matrix.image_flavor }}"
 
