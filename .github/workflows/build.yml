@@ -145,7 +145,7 @@ jobs:
               shell: bash
               run: |
                 sudo -E $(command -v just) load-rechunk "${{ matrix.base_name }}" \
-                                  "${{ env.DEFAULT_TAG }}" \
+                                  "${{ matrix.stream_name }}" \
                                   "${{ matrix.image_flavor }}"
 
             ## Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
