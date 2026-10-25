@@ -134,6 +134,7 @@ jobs:
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                sudo apt install -y systemd-container
                 $(command -v just) rechunk "${{ matrix.image }}" \
                                   "${{ matrix.stream_name }}" \
                                   "${{ matrix.image_flavor }}" \
