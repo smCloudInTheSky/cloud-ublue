@@ -4,7 +4,18 @@ export image_name := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 just := just_executable()
-
+images := '(
+    [cloud-ublue]=cloud-ublue
+    [thinkpad-ublue]=thinkpad-ublue
+)'
+flavors := '(
+    [main]=main
+)'
+tags := '(
+    [stable]=stable
+    [latest]=latest
+    [beta]=beta
+)'
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
 alias run-vm := run-vm-qcow2
