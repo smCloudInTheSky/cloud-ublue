@@ -58,6 +58,9 @@ FEDORA_PACKAGES=(
     libvirt-devel
     libvirt-nss
     libvmaf-devel
+    libxcb-devel
+    libxkbcommon-devel
+    libxkbcommon-x11-devel
     lxc
     nicstat
     numactl
