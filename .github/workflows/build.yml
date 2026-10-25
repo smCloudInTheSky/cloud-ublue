@@ -33,6 +33,8 @@ jobs:
         strategy:
             matrix:
                 image: [cloud-ublue, thinkpad-ublue]
+                stream_name: [latest]
+                flavor: [main]
         permissions:
             contents: read
             packages: write
@@ -64,6 +66,11 @@ jobs:
               with:
                   target-dir: /var/lib/containers
                   mount-opts: compress-force=zstd:2
+
+            - name: Install Just
+              run: |
+                /home/linuxbrew/.linuxbrew/bin/brew install just
+                echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 
             - name: Get current date
               id: date
@@ -122,22 +129,25 @@ jobs:
                   oci: false
 
             - name: Rechunk image
-              id: rechunk
+              id: rechun
+              id: rechunk-image
+              shell: bash
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                IMG="localhost/${{ matrix.image }}:${{ env.DEFAULT_TAG }}"
-                CHUNKAH_CONFIG="$(mktemp)"
-                trap 'rm -f "${CHUNKAH_CONFIG}"' EXIT
-                podman inspect "${IMG}" > "${CHUNKAH_CONFIG}"
-                chmod 644 "${CHUNKAH_CONFIG}"
-                podman run --rm \
-                  --cap-add=DAC_READ_SEARCH \
-                  --security-opt=label=disable \
-                  --mount=type=image,src="${IMG}",dest=/chunkah \
-                  --mount=type=bind,src="${CHUNKAH_CONFIG}",dest=/tmp/chunkah-config.json,ro \
-                  registry.access.redhat.com/hi/chunkah:latest build \
-                    --config /tmp/chunkah-config.json \
-                    --prune /sysroot/
-                    -t "localhost/${{ matrix.image }}-chunked:${{ env.DEFAULT_TAG }}" | podman load
+                sudo -E $(command -v just) rechunk "${{ matrix.image }}" \
+                                  "${{ matrix.stream_name }}" \
+                                  "${{ matrix.image_flavor }}" \
+                                  "1"
+
+            - name: Load Image into Podman
+              id: load-rechunk
+              shell: bash
+              run: |
+                sudo -E $(command -v just) load-rechunk "${{ matrix.base_name }}" \
+                                  "${{ env.DEFAULT_TAG }}" \
+                                  "${{ matrix.image_flavor }}"
+
             ## Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
             ## This does not make your image faster to download, just provides better resumability and fixes a few errors.
             ## Documentation for Rechunk is provided on their github repository at https://github.com/hhd-dev/rechunk
