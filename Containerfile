@@ -13,7 +13,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     mkdir -p /var/lib/alternatives && \
     /ctx/build_files/build.sh && \
-    bootc container commit
+    ostree container commit
 
 RUN bootc container lint
 
@@ -24,6 +24,6 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build_files/build_thinkpad.sh && \
-    bootc container commit
+    ostree container commit
 
 RUN bootc container lint
