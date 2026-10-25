@@ -129,7 +129,6 @@ jobs:
                   oci: false
 
             - name: Rechunk image
-              id: rechun
               id: rechunk-image
               shell: bash
               env:
