@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ouex pipefail
+set -oue pipefail
 
 echo "::group:: Configure thinkpad tooling"
 dnf -y copr enable abn/throttled
