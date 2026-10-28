@@ -128,27 +128,56 @@ jobs:
                   labels: ${{ steps.metadata.outputs.labels }}
                   oci: false
 
-            - name: Rechunk image
-              id: rechunk-image
-              shell: bash
+            - name: Rechunk Image with Chunkah
+              id: rechunker
               env:
+                MATRIX_BASE_NAME: ${{ matrix.image }}
+                MATRIX_STREAM_NAME: ${{ matrix.stream_name }}
+                MATRIX_IMAGE_FLAVOR: ${{ matrix.image_flavor }}
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                echo "::group:: install machinectl"
-                sudo apt install -y systemd-container
-                echo "::endgroup::"
-                $(command -v just) rechunk "${{ matrix.image }}" \
-                                  "${{ matrix.stream_name }}" \
-                                  "${{ matrix.image_flavor }}" \
-                                  "1"
+               echo "::group:: install machinectl"
+               sudo apt install -y systemd-container
+               echo "::endgroup::"
+               $(command -v just) rechunk \
+                  --image "${MATRIX_BASE_NAME}" \
+                  --tag "${MATRIX_STREAM_NAME}" \
+                  --flavor "${MATRIX_IMAGE_FLAVOR}"
 
-            - name: Load Image into Podman
-              id: load-rechunk
-              shell: bash
-              run: |
-                sudo -E $(command -v just) load-rechunk "${{ matrix.image }}" \
-                                  "${{ matrix.stream_name }}" \
-                                  "${{ matrix.image_flavor }}"
+            #- name: Rechunk image
+            #  id: rechunk-image
+            #  shell: bash
+            #  env:
+            #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            #  run: |
+            #    $(command -v just) rechunk "${{ matrix.image }}" \
+            #                      "${{ matrix.stream_name }}" \
+            #                      "${{ matrix.image_flavor }}" \
+            #                      "1"
+
+            #- name: Load rechunked image into Podman
+            #  id: load-rechunk
+            #  shell: bash
+            #  env:
+            #    RECHUNK_TAGS: ${{ steps.metadata.outputs.tags }}
+            #  run: |
+            #    image="${{ matrix.image }}"
+            #    stream="${{ matrix.stream_name }}"
+            #    read -r -a tags <<< "${RECHUNK_TAGS}"
+
+            #    # Remove the original build's tags so the push step cannot publish it.
+            #    for tag in "${tags[@]}"; do
+            #      podman untag "localhost/${image}:${tag}" || true
+            #    done
+
+            #    just load-rechunk "${image}" "${stream}" "${{ matrix.image_flavor }}"
+
+            #    rechunked_image=$(podman image inspect "localhost/${image}:${stream}" --format '{{.Id}}')
+            #    for tag in "${tags[@]}"; do
+            #      if [[ "${tag}" != "${stream}" ]]; then
+            #        podman tag "${rechunked_image}" "localhost/${image}:${tag}"
+            #      fi
+            #    done
 
             ## Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
             ## This does not make your image faster to download, just provides better resumability and fixes a few errors.
