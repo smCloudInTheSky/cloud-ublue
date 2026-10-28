@@ -108,7 +108,7 @@ sudoif command *args:
 #
 
 # Build the image using the specified parameters
-build $target_image=image_name $tag=default_tag:
+build $target_image=default_image $tag=default_tag:
     #!/usr/bin/env bash
 
     BUILD_ARGS=()
@@ -139,7 +139,7 @@ build $target_image=image_name $tag=default_tag:
 # 3. If the image is found, load it into rootful podman using podman scp.
 # 4. If the image is not found, pull it from the remote repository into reootful podman.
 
-_rootful_load_image $target_image=image_name $tag=default_tag:
+_rootful_load_image $target_image=default_image $tag=default_tag:
     #!/usr/bin/bash
     set -eoux pipefail
 
