@@ -2,6 +2,7 @@ export repo_organization := lowercase(env("GITHUB_REPOSITORY_OWNER", "smcloudint
 rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1@sha256:2627cbf92ca60ab7372070dcf93b40f457926f301509ffba47a04d6a9e1ddaf7"
 export image_name := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
+export default_flavor := env("DEFAULT_FLAVOR","main")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 export SUDOIF := if `id -u` == "0" { "" } else { "sudo" }
 export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
@@ -278,7 +279,7 @@ validate $image $tag $flavor:
 [arg("image", long="image", short="i")]
 [arg("tag", long="tag", short="t")]
 [group('Image')]
-rechunk $image=default_image $tag=default_tag $flavor=default_flavor:
+rechunk $image=image_name $tag=default_tag $flavor=default_flavor:
     #!/usr/bin/env bash
     set -eoux pipefail
 
