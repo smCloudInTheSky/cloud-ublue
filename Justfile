@@ -411,40 +411,6 @@ lint:
     # Run shellcheck on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
 
-# Check if valid combo
-[group('Utility')]
-[private]
-validate $image $tag $flavor:
-    #!/usr/bin/bash
-    set -eou pipefail
-    declare -A images={{ images }}
-    declare -A tags={{ tags }}
-    declare -A flavors={{ flavors }}
-
-    # Handle Stable Daily
-    if [[ "${tag}" == "stable-daily" ]]; then
-        tag="stable"
-    fi
-
-    checkimage="${images[${image}]-}"
-    checktag="${tags[${tag}]-}"
-    checkflavor="${flavors[${flavor}]-}"
-
-    # Validity Checks
-    if [[ -z "$checkimage" ]]; then
-        echo "Invalid Image..."
-        exit 1
-    fi
-    if [[ -z "$checktag" ]]; then
-        echo "Invalid tag..."
-        exit 1
-    fi
-    if [[ -z "$checkflavor" ]]; then
-        echo "Invalid flavor..."
-        exit 1
-    fi
-
-
 # Image Name
 [group('Utility')]
 [private]
