@@ -1,6 +1,6 @@
 export repo_organization := lowercase(env("GITHUB_REPOSITORY_OWNER", "smcloudinthesky"))
 rechunker_image := "ghcr.io/ublue-os/legacy-rechunk:v1.0.1@sha256:2627cbf92ca60ab7372070dcf93b40f457926f301509ffba47a04d6a9e1ddaf7"
-export image_name := env("IMAGE_NAME", "cloud-ublue")
+export default_image := env("IMAGE_NAME", "cloud-ublue")
 export default_tag := env("DEFAULT_TAG", "latest")
 export default_flavor := env("DEFAULT_FLAVOR","main")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
@@ -221,27 +221,27 @@ _rebuild-bib $target_image $tag $type $config: (build target_image tag) && (_bui
 
 # Build a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
-build-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "qcow2" "disk_config/disk.toml")
+build-qcow2 $target_image=("localhost/" + default_image) $tag=default_tag: && (_build-bib target_image tag "qcow2" "disk_config/disk.toml")
 
 # Build a RAW virtual machine image
 [group('Build Virtal Machine Image')]
-build-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "raw" "disk_config/disk.toml")
+build-raw $target_image=("localhost/" + default_image) $tag=default_tag: && (_build-bib target_image tag "raw" "disk_config/disk.toml")
 
 # Build an ISO virtual machine image
 [group('Build Virtal Machine Image')]
-build-iso-gnome $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "iso" "disk_config/iso-gnome.toml")
+build-iso-gnome $target_image=("localhost/" + default_image) $tag=default_tag: && (_build-bib target_image tag "iso" "disk_config/iso-gnome.toml")
 
 # Rebuild a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
-rebuild-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "disk_config/disk.toml")
+rebuild-qcow2 $target_image=("localhost/" + default_image) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "disk_config/disk.toml")
 
 # Rebuild a RAW virtual machine image
 [group('Build Virtal Machine Image')]
-rebuild-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "raw" "disk_config/disk.toml")
+rebuild-raw $target_image=("localhost/" + default_image) $tag=default_tag: && (_rebuild-bib target_image tag "raw" "disk_config/disk.toml")
 
 # Rebuild an ISO virtual machine image
 [group('Build Virtal Machine Image')]
-rebuild-iso-gnome $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "iso" "disk_config/iso-gnome.toml")
+rebuild-iso-gnome $target_image=("localhost/" + default_image) $tag=default_tag: && (_rebuild-bib target_image tag "iso" "disk_config/iso-gnome.toml")
 
 # Check if valid combo
 [arg("flavor", long="flavor", short="f")]
@@ -279,7 +279,7 @@ validate $image $tag $flavor:
 [arg("image", long="image", short="i")]
 [arg("tag", long="tag", short="t")]
 [group('Image')]
-rechunk $image=image_name $tag=default_tag $flavor=default_flavor:
+rechunk $image=default_image $tag=default_tag $flavor=default_flavor:
     #!/usr/bin/env bash
     set -eoux pipefail
 
@@ -437,3 +437,21 @@ format:
     fi
     # Run shfmt on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'
+
+# Image Name
+[arg("flavor", long="flavor", short="f")]
+[arg("image", long="image", short="i")]
+[arg("tag", long="tag", short="t")]
+[private]
+image_name image=default_image tag=default_tag flavor=default_flavor:
+    #!/usr/bin/env bash
+    set -eoux pipefail
+
+    {{ just }} validate --image {{ image }} --tag {{ tag }} --flavor {{ flavor }}
+    if [[ "{{ flavor }}" =~ main ]]; then
+        image_name={{ image }}
+    else
+        image_name="{{ image }}-{{ flavor }}"
+    fi
+
+    echo "${image_name}"
