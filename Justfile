@@ -412,20 +412,6 @@ lint:
     # Run shellcheck on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
 
-# Image Name
-[group('Utility')]
-[private]
-image_name image="bluefin" tag="latest" flavor="main":
-    #!/usr/bin/bash
-    set -eou pipefail
-    {{ just }} validate {{ image }} {{ tag }} {{ flavor }}
-    if [[ "{{ flavor }}" =~ main ]]; then
-        image_name={{ image }}
-    else
-        image_name="{{ image }}-{{ flavor }}"
-    fi
-    echo "${image_name}"
-
 # Runs shfmt on all Bash scripts
 format:
     #!/usr/bin/env bash
