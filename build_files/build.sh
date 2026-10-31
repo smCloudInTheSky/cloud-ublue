@@ -137,7 +137,7 @@ ln -sr /opt /var/opt
 # for packages that require it to be writeable do the following:
 # install package (dnf5 -y install .....)
 echo "::group:: Install devsy/r2modman"
-${DNF_CMD} install https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm
+${DNF_CMD} install https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.21/r2modman-3.2.21.x86_64.rpm
 ${DNF_CMD} install https://github.com/devsy-org/devsy/releases/download/v1.24.0/Devsy_linux_x86_64.rpm
 
 
