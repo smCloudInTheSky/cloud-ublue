@@ -291,7 +291,9 @@ rechunk $image=default_image $tag=default_tag $flavor=default_flavor:
     trap 'rm -f "${CHUNKAH_CONFIG_FILE}"; rm -rf "${CHUNKAH_OUTPUT_DIR}"' EXIT
     ${PODMAN} inspect "${image_name}:${tag}" > "${CHUNKAH_CONFIG_FILE}"
 
-    ${PODMAN} run --rm --mount=type=image,src="${image_name}:${tag}",target=/chunkah \
+    ${PODMAN} run --rm \
+    --env RUST_LOG=chunkah=debug \
+    --mount=type=image,src="${image_name}:${tag}",target=/chunkah \
     -v "${CHUNKAH_CONFIG_FILE}:/chunkah-config.json:ro,Z" \
     -v "${CHUNKAH_OUTPUT_DIR}:/run/out:Z" \
     "{{ chunkah }}" \
@@ -304,8 +306,52 @@ rechunk $image=default_image $tag=default_tag $flavor=default_flavor:
     --config /chunkah-config.json \
     --output oci:/run/out/chunked
 
-    CHUNKED_IMAGE="$(podman pull "oci:${CHUNKAH_OUTPUT_DIR}/chunked")"
-    podman tag "${CHUNKED_IMAGE}" "${image_name}:${tag}"
+    CHUNKED_IMAGE="$(${PODMAN} pull "oci:${CHUNKAH_OUTPUT_DIR}/chunked")"
+    ${PODMAN} tag "${CHUNKED_IMAGE}" "${image_name}:${tag}"
+
+# Diagnose the rechunk `rpm` failure ("rpm command killed by signal 13").
+#
+# chunkah loads the rpmdb by running the host `rpm -qa --queryformat ...` and
+# piping stdout into a parser. If that parser bails early it closes the pipe,
+# which sends SIGPIPE (signal 13) to `rpm`; the *real* error is then masked by
+# the "signal 13" message.
+#
+# Rechunk Image (diagnostic): reveal the real error behind the rpm failure.
+[arg("flavor", long="flavor", short="f")]
+[arg("image", long="image", short="i")]
+[arg("tag", long="tag", short="t")]
+[group('Image')]
+rechunk-debug $image=default_image $tag=default_tag $flavor=default_flavor:
+    #!/usr/bin/env bash
+    set -eoux pipefail
+
+    {{ just }} validate --image "${image}" --tag "${tag}" --flavor "${flavor}"
+    image_name=$({{ just }} image_name --image "${image}" --tag "${tag}" --flavor "${flavor}")
+
+    DEBUG_DIR="$(mktemp -d)"
+    trap 'rm -rf "${DEBUG_DIR}"' EXIT
+
+    ${PODMAN} run --rm \
+        --mount=type=image,src="${image_name}:${tag}",target=/chunkah \
+        -v "${DEBUG_DIR}:/run/out:Z" \
+        -v "$(pwd)/build_files/rechunk-debug.sh:/run/debug.sh:ro,Z" \
+        --entrypoint /bin/bash \
+        "{{ chunkah }}" /run/debug.sh
+
+    echo "================ rpm stderr (basic) ================"
+    cat "${DEBUG_DIR}/basic.err" || true
+    echo "================ rpm stderr (full queryformat) ================"
+    cat "${DEBUG_DIR}/full.err" || true
+
+    echo "================ structural check of queryformat output ================"
+    awk -F'\t' '
+        /^@@PKG@@/  { if (NF != 12) print "BAD PKG  line " NR ": " NF " fields"; next }
+        /^@@FILE@@/ { if (NF != 10) print "BAD FILE line " NR ": " NF " fields"; next }
+        /^@@CL@@/   { if (NF != 2)  print "BAD CL   line " NR ": " NF " fields"; next }
+        /^$/        { next }
+        { print "UNEXPECTED line " NR ": " substr($0, 1, 80) }
+    ' "${DEBUG_DIR}/queryformat.txt" | head -50
+    echo "(no output above = output is structurally well-formed)"
 
 # Load OCI into Podman Store
 [group('Image')]
