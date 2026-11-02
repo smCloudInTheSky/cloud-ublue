@@ -1,36 +1,49 @@
 #!/bin/bash
 
-set -oue pipefail
+set -euo pipefail
 
-DNF_CMD="dnf -y"
-### Install packages
+DNF="dnf -y"
 
-# Packages can be installed from any enabled yum repo on the image.
-# RPMfusion repos are available by default in ublue main images
-# List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
+echo "::group:: Configure repositories"
 
-# this installs a package from fedora repos
-# dnf install -y tmux
+# Drop Tailscale (shipped in base but unwanted here)
+${DNF} remove tailscale
 
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
+# COPR: LACT (GPU control daemon)
+${DNF} copr enable ilyaz/LACT
 
+# Docker CE
+${DNF} config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+
+# Terra repos (gamescope / mesa / extras)
+${DNF} install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' \
+    terra-release terra-gpg-keys
+${DNF} install terra-release-mesa terra-release-extras
+
+# Pin Terra above Fedora for mesa/gamescope, keep it from overriding selected packages
+${DNF} config-manager setopt '*terra*.priority=1' \
+    '*terra*.exclude=nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd'
+${DNF} config-manager setopt 'terra-mesa.enabled=false'
+${DNF} config-manager setopt '*fedora*.exclude=steam mangohud'
+
+# NetBird VPN
+cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
+[NetBird]
+name=NetBird
+baseurl=https://pkgs.netbird.io/yum/
+enabled=1
+gpgcheck=0
+gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
+repo_gpgcheck=1
+EOF
+
+rpm-ostree install -y netbird netbird-ui
+
+echo "::endgroup::"
 echo "::group:: Install base packages"
-${DNF_CMD} remove tailscale
-${DNF_CMD} copr enable ilyaz/LACT
-${DNF_CMD} config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
-${DNF_CMD} install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release terra-gpg-keys
-${DNF_CMD} install terra-release-mesa terra-release-extras
-${DNF_CMD} config-manager setopt "*terra*".priority=1 "*terra*".exclude="nerd-fonts scx-tools scx-scheds python3-protobuf zlib-devel uupd"
-${DNF_CMD} config-manager setopt "terra-mesa".enabled=false
-${DNF_CMD} config-manager setopt "*fedora*".exclude="steam mangohud"
-# install extra packages
 
+# --setopt=install_weak_deps=False skips ~200 MiB of unwanted weak deps.
+# Remove the flag if you discover you rely on any of them.
 FEDORA_PACKAGES=(
     android-tools
     bcc
@@ -75,15 +88,15 @@ FEDORA_PACKAGES=(
     podman-compose
     podman-machine
     podman-tui
-    qemu
     qemu-char-spice
+    qemu-audio-spice
+    qemu-device-display-qxl
     qemu-device-display-virtio-gpu
     qemu-device-display-virtio-vga
     qemu-device-usb-redirect
     qemu-img
     qemu-system-x86-core
-    qemu-user-binfmt
-    qemu-user-static
+    qemu-ui-spice-core
     rasdaemon
     sysprof
     tiptop
@@ -96,9 +109,13 @@ FEDORA_PACKAGES=(
     vmaf
     vmaf-models
     wtype
-    winetricks
     ydotool
 )
+
+${DNF} --setopt=install_weak_deps=False install "${FEDORA_PACKAGES[@]}"
+
+echo "::endgroup::"
+echo "::group:: Install gaming packages"
 
 STEAM_PACKAGES=(
     terra-gamescope.x86_64
@@ -106,7 +123,6 @@ STEAM_PACKAGES=(
     terra-gamescope-libs.i686
     umu-wrapper
     umu-launcher
-    dbus-x11
     xrandr
     evtest
     xdg-user-dirs
@@ -124,60 +140,29 @@ STEAM_PACKAGES=(
     openxr-libs
 )
 
-${DNF_CMD} install "${FEDORA_PACKAGES[@]}"
-# Install steam packages
-${DNF_CMD} --enable-repo=terra-mesa --enable-repo=terra --enable-repo=terra-extras install "${STEAM_PACKAGES[@]}"
-${DNF_CMD} --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=False install steam lutris
-#### Example of preparation for installing a package that requires a symlinked directory
+${DNF} --enable-repo=terra-mesa --enable-repo=terra --enable-repo=terra-extras install "${STEAM_PACKAGES[@]}"
+${DNF} --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=False install steam lutris
 
 echo "::endgroup::"
-# /opt is symlinked to /var/opt
-rm -f /opt
-ln -sr /opt /var/opt
-# for packages that require it to be writeable do the following:
-# install package (dnf5 -y install .....)
-echo "::group:: Install devsy/r2modman"
-${DNF_CMD} install https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm
-${DNF_CMD} install https://github.com/devsy-org/devsy/releases/download/v1.24.0/Devsy_linux_x86_64.rpm
 
+# /opt is read-only in the final bootc image; relocate it to writable /var/opt.
+# (bluefin may already ship this symlink — this is idempotent either way.)
+rm -rf /opt
+mkdir -p /var/opt
+ln -s /var/opt /opt
 
+echo "::group:: Install devsy / r2modman"
+${DNF} install \
+    https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm \
+    https://github.com/devsy-org/devsy/releases/download/v1.24.0/Devsy_linux_x86_64.rpm
 echo "::endgroup::"
-echo "::group:: Install Netbird"
-cat <<-EOF | tee /etc/yum.repos.d/netbird.repo
-[NetBird]
-name=NetBird
-baseurl=https://pkgs.netbird.io/yum/
-enabled=1
-gpgcheck=0
-gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
-repo_gpgcheck=1
-EOF
 
-rpm-ostree -y install netbird netbird-ui
-
-systemctl enable netbird
-
-echo "::endgroup::"
 echo "::group:: Enable services + cleanup"
-# move files installed to /opt to /usr/share/factory so they will be in the final image
-# Enable /var/opt to be recreate by systemd tmpfiles feature
-#
-# log command to check things
-# ls -lah /var/opt/
+systemctl enable lactd rasdaemon docker.socket podman.socket netbird
+${DNF} copr disable ilyaz/LACT
 
-systemctl enable lactd
-systemctl enable rasdaemon
-systemctl enable docker.socket
-systemctl enable podman.socket
-# Zoom install because zoom is broken
-${DNF_CMD} copr disable ilyaz/LACT
-dnf clean all
-#### Example for enabling a System Unit File
-
-## update system flatpak List
+# Update system flatpak list
 cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
-
-systemctl enable podman.socket
 echo "::endgroup::"
 
 echo 'Base build complete.'
