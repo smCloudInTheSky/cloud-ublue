@@ -149,7 +149,7 @@ echo "::endgroup::"
 # (bluefin may already ship this symlink — this is idempotent either way.)
 rm -rf /opt
 mkdir -p /var/opt
-ln -s /var/opt /opt
+ln -sr /var/opt /opt
 
 echo "::group:: Install devsy / r2modman"
 ${DNF} install -y \
