@@ -298,7 +298,7 @@ rechunk $image=default_image $tag=default_tag $flavor=default_flavor:
     -v "${CHUNKAH_OUTPUT_DIR}:/run/out:Z" \
     "{{ chunkah }}" \
     build \
-    --verbose \
+    -vv \
     --compressed \
     --max-layers 256 \
     --prune /sysroot/ \
