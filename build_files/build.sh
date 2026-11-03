@@ -157,7 +157,6 @@ ${DNF} install -y \
     https://github.com/devsy-org/devsy/releases/download/v1.26.0/Devsy_linux_x86_64.rpm
 
 rpmdb --verifydb
-rpmdb --rebuilddb
 echo "::endgroup::"
 
 echo "::group:: Enable services + cleanup"
