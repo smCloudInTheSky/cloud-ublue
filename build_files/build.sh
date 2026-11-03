@@ -161,8 +161,6 @@ rpmdb --verifydb
 rpm -qi devsy-desktop
 rpm -qi r2modman
 
-rpm -q r2modman
-rpm -q Devsy_linux
 echo "::endgroup::"
 
 echo "::group:: Enable services + cleanup"
