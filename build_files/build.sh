@@ -156,7 +156,13 @@ ${DNF} install -y \
     https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.21/r2modman-3.2.21.x86_64.rpm \
     https://github.com/devsy-org/devsy/releases/download/v1.26.0/Devsy_linux_x86_64.rpm
 
+
 rpmdb --verifydb
+rpm -qi devsy-desktop
+rpm -qi r2modman
+
+rpm -q r2modman
+rpm -q Devsy_linux
 echo "::endgroup::"
 
 echo "::group:: Enable services + cleanup"
