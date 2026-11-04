@@ -15,7 +15,10 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/build_files/build.sh && \
     ostree container commit
 
-RUN bootc container lint
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    bash /ctx/build_files/bootc-postprocess.sh
+
+RUN bootc container lint --fatal-warnings --no-truncate
 
 FROM cloud-ublue as thinkpad-ublue
 
@@ -26,4 +29,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/build_files/build_thinkpad.sh && \
     ostree container commit
 
-RUN bootc container lint
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    bash /ctx/build_files/bootc-postprocess.sh
+
+RUN bootc container lint --fatal-warnings --no-truncate

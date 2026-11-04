@@ -145,17 +145,23 @@ ${DNF} --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=F
 
 echo "::endgroup::"
 
-# /opt is read-only in the final bootc image; relocate it to writable /var/opt.
-# (bluefin may already ship this symlink — this is idempotent either way.)
-rm -rf /opt
-mkdir -p /var/opt
-ln -sr /var/opt /opt
+# Keep application payloads in immutable /opt instead of persisting them in /var.
+# Bluefin may provide /opt as a symlink to /var/opt; replace that symlink with
+# an image-owned directory before installing third-party RPMs below.
+if [[ -L /opt ]]; then
+    rm /opt
+    mkdir -p /opt
+fi
 
 echo "::group:: Install devsy / r2modman"
 ${DNF} install -y \
     https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.21/r2modman-3.2.21.x86_64.rpm \
     https://github.com/devsy-org/devsy/releases/download/v1.26.0/Devsy_linux_x86_64.rpm
 
+# Docker CE creates this group in /etc/group but does not ship a sysusers.d file.
+install -D -m 0644 /dev/stdin /usr/lib/sysusers.d/docker.conf <<'EOF'
+g docker -
+EOF
 
 rpmdb --verifydb
 rpm -qi devsy-desktop

@@ -112,12 +112,18 @@ build $target_image=default_image $tag=default_tag:
     #!/usr/bin/env bash
 
     BUILD_ARGS=()
+    BUILD_TARGET=cloud-ublue
+    if [[ "${target_image##*/}" == "thinkpad-ublue" ]]; then
+        BUILD_TARGET=thinkpad-ublue
+    fi
+
     if [[ -z "$(git status -s)" ]]; then
         BUILD_ARGS+=("--build-arg" "SHA_HEAD_SHORT=$(git rev-parse --short HEAD)")
     fi
 
     podman build \
         "${BUILD_ARGS[@]}" \
+        --target "${BUILD_TARGET}" \
         --pull=newer \
         --tag "${target_image}:${tag}" \
         .
