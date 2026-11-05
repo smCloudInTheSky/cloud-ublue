@@ -12,6 +12,9 @@ ${DNF} remove tailscale
 # COPR: LACT (GPU control daemon)
 ${DNF} copr enable ilyaz/LACT
 
+# COPR: sched_ext cachyos
+${DNF} copr enable bieszczaders/kernel-cachyos-addons
+
 # Docker CE
 ${DNF} config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 
@@ -118,6 +121,7 @@ echo "::endgroup::"
 echo "::group:: Install gaming packages"
 
 STEAM_PACKAGES=(
+    scx-scheds
     terra-gamescope.x86_64
     terra-gamescope-libs.x86_64
     terra-gamescope-libs.i686
@@ -164,11 +168,14 @@ g docker -
 EOF
 
 rpmdb --verifydb
-rpm -qi devsy-desktop
-rpm -qi r2modman
 
 echo "::endgroup::"
 
+echo "::group:: configure gamemoderun to use sched_ext"
+
+rsync -rva /ctx/build_files/etc /etc
+
+echo "::endgroup::"
 echo "::group:: Enable services + cleanup"
 systemctl enable lactd rasdaemon docker.socket podman.socket netbird
 ${DNF} copr disable ilyaz/LACT
