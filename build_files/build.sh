@@ -171,17 +171,11 @@ rpmdb --verifydb
 
 echo "::endgroup::"
 
-echo "::group:: configure gamemoderun to use sched_ext"
-
-rsync -rva /ctx/build_files/etc /etc
-
-echo "::endgroup::"
 echo "::group:: Enable services + cleanup"
-systemctl enable lactd rasdaemon docker.socket podman.socket netbird
+# /etc/gamemode.ini, the polkit rule, and the system flatpak lists are baked in
+# from system_files/ by the Containerfile.
+systemctl enable lactd rasdaemon docker.socket podman.socket netbird scx
 ${DNF} copr disable ilyaz/LACT
-
-# Update system flatpak list
-cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
 echo "::endgroup::"
 
 echo 'Base build complete.'
