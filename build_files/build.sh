@@ -12,6 +12,9 @@ ${DNF} remove tailscale
 # COPR: LACT (GPU control daemon)
 ${DNF} copr enable ilyaz/LACT
 
+# COPR: sched_ext cachyos
+${DNF} copr enable bieszczaders/kernel-cachyos-addons
+
 # Docker CE
 ${DNF} config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 
@@ -118,6 +121,8 @@ echo "::endgroup::"
 echo "::group:: Install gaming packages"
 
 STEAM_PACKAGES=(
+    scx-scheds
+    scx-tools
     terra-gamescope.x86_64
     terra-gamescope-libs.x86_64
     terra-gamescope-libs.i686
@@ -164,17 +169,17 @@ g docker -
 EOF
 
 rpmdb --verifydb
-rpm -qi devsy-desktop
-rpm -qi r2modman
 
 echo "::endgroup::"
 
 echo "::group:: Enable services + cleanup"
-systemctl enable lactd rasdaemon docker.socket podman.socket netbird
+# No `systemctl daemon-reload` here: the build runs without systemd as PID 1, so
+# it exits 1 and `set -e` aborts the build. `systemctl enable` only creates the
+# .wants/ symlinks and works fine offline.
+# /etc/gamemode.ini, the polkit rule, scx.service and the system flatpak lists
+# are baked in from system_files/ by the Containerfile.
+systemctl enable lactd rasdaemon docker.socket podman.socket netbird scx
 ${DNF} copr disable ilyaz/LACT
-
-# Update system flatpak list
-cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
 echo "::endgroup::"
 
 echo 'Base build complete.'

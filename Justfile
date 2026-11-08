@@ -177,6 +177,82 @@ _rootful_load_image $target_image=default_image $tag=default_tag:
         just sudoif podman pull "${target_image}:${tag}"
     fi
 
+# Command: _check_image_system_files
+# Description: Fails early when the image about to be converted into a disk does
+#              not contain the configuration baked in from system_files/. The
+#              expected entries are read from the system_files/ layout itself
+#              (directories, files and symlinks), so this check stays in sync
+#              when the overlay changes. This catches stale images when
+#              `just build-qcow2` is run without first rebuilding the image.
+#
+# Parameters:
+#   $target_image - The image that bootc-image-builder will convert.
+#   $tag - The tag of the target image.
+
+[private]
+_check_image_system_files $target_image $tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Nothing to enforce when the repo has no system_files/ overlay.
+    if [[ ! -d system_files ]]; then
+        exit 0
+    fi
+
+    # Remote images are converted as-is; only guard images built from this repo.
+    case "${target_image}" in
+        localhost/*|"${default_image}") ;;
+        *)
+            echo "Skipping system_files check for remote image ${target_image}:${tag}."
+            exit 0
+            ;;
+    esac
+
+    if ! sudo podman image exists "${target_image}:${tag}"; then
+        echo "Image ${target_image}:${tag} was not found in rootful podman storage." >&2
+        exit 1
+    fi
+
+    echo "Converting image: $(sudo podman image inspect "${target_image}:${tag}" | jq -r '.[0].Id + " (created " + .[0].Created + ")"')"
+
+    # Build the check script from the overlay layout so it cannot drift from
+    # system_files/. It runs inside the image with /bin/sh.
+    check_script="missing=0"
+    while IFS= read -r -d '' record; do
+        kind=${record:0:1}
+        rel=${record:2}
+        dest="/${rel}"
+        printf -v quoted '%q' "${dest}"
+        case "${kind}" in
+            d) test_flag="-d" ;;
+            f) test_flag="-f" ;;
+            l) test_flag="-L" ;;
+            *) continue ;;
+        esac
+        check_script+="; if [ ${test_flag} ${quoted} ]; then echo \"  OK   ${dest}\"; else echo \"  MISS ${dest}\"; missing=1; fi"
+    done < <(find system_files -mindepth 1 -printf '%y %P\0' | sort -z -k2)
+    check_script+='; exit "$missing"'
+
+    set +e
+    sudo podman run \
+        --rm \
+        --pull=never \
+        --network=none \
+        --entrypoint /bin/sh \
+        "${target_image}:${tag}" \
+        -c "${check_script}"
+    rc=$?
+    set -e
+
+    if [[ ${rc} -eq 1 ]]; then
+        printf '\nImage %s:%s is missing entries from system_files/.\nRefusing to build a disk from a stale image. Rebuild the image first:\n\n    just rebuild-qcow2 %s %s\n\nor:\n\n    just build && just build-qcow2 %s %s\n\n' \
+            "${target_image}" "${tag}" "${target_image}" "${tag}" "${target_image}" "${tag}" >&2
+        exit 1
+    elif [[ ${rc} -ne 0 ]]; then
+        echo "Failed to inspect image ${target_image}:${tag} (podman exit ${rc})." >&2
+        exit "${rc}"
+    fi
+
 # Build a bootc bootable image using Bootc Image Builder (BIB)
 # Converts a container image to a bootable image
 # Parameters:
@@ -186,7 +262,7 @@ _rootful_load_image $target_image=default_image $tag=default_tag:
 #   config: The configuration file to use for the build (default: disk_config/disk.toml)
 
 # Example: just _rebuild-bib localhost/fedora latest qcow2 disk_config/disk.toml
-_build-bib $target_image $tag $type $config: (_rootful_load_image target_image tag)
+_build-bib $target_image $tag $type $config: (_rootful_load_image target_image tag) (_check_image_system_files target_image tag)
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -227,7 +303,7 @@ _rebuild-bib $target_image $tag $type $config: (build target_image tag) && (_bui
 
 # Build a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
-build-qcow2 $target_image=("localhost/" + default_image) $tag=default_tag: && (_build-bib target_image tag "qcow2" "disk_config/disk.toml")
+build-qcow2 $target_image=("localhost/" + default_image) $tag=default_tag: && (_build-bib target_image tag "qcow2" "disk_config/disk.toml") (verify-qcow2 "output/qcow2/disk.qcow2")
 
 # Build a RAW virtual machine image
 [group('Build Virtal Machine Image')]
@@ -239,7 +315,212 @@ build-iso-gnome $target_image=("localhost/" + default_image) $tag=default_tag: &
 
 # Rebuild a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
-rebuild-qcow2 $target_image=("localhost/" + default_image) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "disk_config/disk.toml")
+rebuild-qcow2 $target_image=("localhost/" + default_image) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "disk_config/disk.toml") (verify-qcow2 "output/qcow2/disk.qcow2")
+
+# Verify a built disk matches the layout under system_files/.
+# Walks every entry in the overlay (directories, regular files, symlinks),
+# resolves the bootc deployment inside the disk with libguestfs and checks that
+# the deployed copy exists at the same relative path and has the same content.
+# No VM boot is required. Skips with a warning when libguestfs is not installed.
+#
+# A deployed file may be larger than its source when a build script appends to
+# it (for example build_thinkpad.sh appends to system-flatpaks.list); that case
+# passes when the source is a byte-prefix of the deployed file.
+# Parameters:
+# $disk - The disk image to inspect (default: output/qcow2/disk.qcow2).
+# $overlay - The overlay directory to compare against (default: system_files).
+[group('Build Virtal Machine Image')]
+verify-qcow2 $disk="output/qcow2/disk.qcow2" $overlay="system_files":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if ! command -v guestfish >/dev/null || ! command -v virt-filesystems >/dev/null; then
+        echo "Skipping disk verification: libguestfs tools (guestfish, virt-filesystems) are not installed." >&2
+        exit 0
+    fi
+
+    if [[ ! -f ${disk} ]]; then
+        echo "Disk image not found: ${disk}" >&2
+        exit 1
+    fi
+
+    if [[ ! -d ${overlay} ]]; then
+        echo "Overlay directory not found: ${overlay}" >&2
+        exit 1
+    fi
+
+    # Enumerate the overlay: every entry is checked, not a hardcoded list.
+    declare -a kinds=() rels=()
+    while IFS= read -r -d '' record; do
+        kinds+=("${record:0:1}")
+        rels+=("${record:2}")
+    done < <(find "${overlay}" -mindepth 1 -printf '%y %P\0' | sort -z -k2)
+
+    if [[ ${#rels[@]} -eq 0 ]]; then
+        echo "No entries found under ${overlay}/; nothing to verify."
+        exit 0
+    fi
+
+    rootvol=$(virt-filesystems -a "${disk}" --all --long | awk '$1 ~ /^btrfsvol:/ && $2 == "filesystem" { print $1; exit }')
+    if [[ -z ${rootvol} ]]; then
+        echo "Could not find a btrfs root subvolume in ${disk}" >&2
+        exit 1
+    fi
+
+    device=${rootvol#btrfsvol:}
+    subvol=${device##*/}
+    device=${device%/*}
+    mount_spec="${device}:/:subvol=${subvol}"
+
+    deployment=$(guestfish --ro -a "${disk}" -m "${mount_spec}" ls /ostree/deploy/default/deploy | grep -E '^[0-9a-f]+\.0$' | sort | tail -1)
+    if [[ -z ${deployment} ]]; then
+        echo "Could not find a bootc deployment in ${disk}" >&2
+        exit 1
+    fi
+
+    root="/ostree/deploy/default/deploy/${deployment}"
+    echo "Inspecting ${disk} (deployment ${deployment})"
+    echo "Comparing against ${overlay}/ (${#rels[@]} entries)"
+
+    guest_quote() {
+        local escaped=${1//\\/\\\\}
+        escaped=${escaped//\"/\\\"}
+        printf '"%s"' "${escaped}"
+    }
+
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "${tmpdir}"' EXIT
+
+    type_cmds="${tmpdir}/types"
+    : > "${type_cmds}"
+
+    # Ask guestfish for the type of every entry in one session.
+    for i in "${!rels[@]}"; do
+        guest_path="${root}/${rels[$i]}"
+        case "${kinds[$i]}" in
+            d) printf 'is-dir %s\n' "$(guest_quote "${guest_path}")" >> "${type_cmds}" ;;
+            f) printf 'is-file %s\n' "$(guest_quote "${guest_path}")" >> "${type_cmds}" ;;
+            l) printf 'is-symlink %s\n' "$(guest_quote "${guest_path}")" >> "${type_cmds}" ;;
+            *) printf 'echo unsupported-%s\n' "${kinds[$i]}" >> "${type_cmds}" ;;
+        esac
+    done
+
+    if ! type_output=$(guestfish --ro -a "${disk}" -m "${mount_spec}" -f "${type_cmds}"); then
+        echo "Failed to inspect ${disk} with guestfish." >&2
+        exit 1
+    fi
+    mapfile -t type_lines <<< "${type_output}"
+
+    if [[ ${#type_lines[@]} -ne ${#rels[@]} ]]; then
+        echo "Unexpected guestfish output while inspecting ${disk}; aborting." >&2
+        exit 1
+    fi
+
+    declare -A file_targets=()
+    declare -a link_indexes=()
+    download_cmds="${tmpdir}/downloads"
+    readlink_cmds="${tmpdir}/readlinks"
+    : > "${download_cmds}"
+    : > "${readlink_cmds}"
+
+    failed=0
+    for i in "${!rels[@]}"; do
+        rel=${rels[$i]}
+        kind=${kinds[$i]}
+        actual=${type_lines[$i]}
+
+        case "${kind}" in
+            d)
+                if [[ ${actual} == true ]]; then
+                    echo "  OK   /${rel} (directory)"
+                else
+                    echo "  MISS /${rel} (expected a directory)"
+                    failed=1
+                fi
+                ;;
+            f)
+                if [[ ${actual} == true ]]; then
+                    target="${tmpdir}/file-${i}"
+                    file_targets[$i]="${target}"
+                    printf 'download %s %s\n' "$(guest_quote "${root}/${rel}")" "$(guest_quote "${target}")" >> "${download_cmds}"
+                else
+                    echo "  MISS /${rel} (expected a regular file)"
+                    failed=1
+                fi
+                ;;
+            l)
+                if [[ ${actual} == true ]]; then
+                    link_indexes+=("${i}")
+                    printf 'readlink %s\n' "$(guest_quote "${root}/${rel}")" >> "${readlink_cmds}"
+                else
+                    echo "  MISS /${rel} (expected a symlink)"
+                    failed=1
+                fi
+                ;;
+            *)
+                echo "  SKIP /${rel} (unsupported entry type '${kind}')"
+                ;;
+        esac
+    done
+
+    # Download existing regular files in one session and compare contents.
+    if [[ ${#file_targets[@]} -gt 0 ]]; then
+        if ! guestfish --ro -a "${disk}" -m "${mount_spec}" -f "${download_cmds}" >/dev/null; then
+            echo "Failed to download files from ${disk}." >&2
+            exit 1
+        fi
+    fi
+
+    for i in "${!rels[@]}"; do
+        if [[ ! -v file_targets[$i] ]]; then
+            continue
+        fi
+
+        rel=${rels[$i]}
+        source="${overlay}/${rel}"
+        deployed=${file_targets[$i]}
+        source_size=$(stat -c %s "${source}")
+        deployed_size=$(stat -c %s "${deployed}")
+
+        if cmp -s "${source}" "${deployed}"; then
+            echo "  OK   /${rel}"
+        elif [[ ${deployed_size} -gt ${source_size} ]] && head -c "${source_size}" "${deployed}" | cmp -s "${source}" -; then
+            echo "  OK   /${rel} (+$((deployed_size - source_size)) bytes appended during build)"
+        else
+            echo "  FAIL /${rel} differs from ${overlay}/${rel}"
+            failed=1
+        fi
+    done
+
+    # Read symlink targets in one session and compare them.
+    if [[ ${#link_indexes[@]} -gt 0 ]]; then
+        if ! link_output=$(guestfish --ro -a "${disk}" -m "${mount_spec}" -f "${readlink_cmds}"); then
+            echo "Failed to read symlinks from ${disk}." >&2
+            exit 1
+        fi
+        mapfile -t link_lines <<< "${link_output}"
+
+        for n in "${!link_indexes[@]}"; do
+            i=${link_indexes[$n]}
+            rel=${rels[$i]}
+            expected=$(readlink "${overlay}/${rel}")
+            actual=${link_lines[$n]:-}
+
+            if [[ ${actual} == "${expected}" ]]; then
+                echo "  OK   /${rel} -> ${actual} (symlink)"
+            else
+                echo "  FAIL /${rel} -> '${actual}' (expected '${expected}')"
+                failed=1
+            fi
+        done
+    fi
+
+    if [[ ${failed} -ne 0 ]]; then
+        echo "Disk verification FAILED: ${disk} does not match ${overlay}/. It was probably built from a stale image; run 'just rebuild-qcow2'." >&2
+        exit 1
+    fi
+
+    echo "Disk verification passed: ${disk} matches ${overlay}/ (${#rels[@]} entries checked)."
 
 # Rebuild a RAW virtual machine image
 [group('Build Virtal Machine Image')]

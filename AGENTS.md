@@ -19,12 +19,13 @@ The `Containerfile` defines a **multi-stage build** with two output images:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ Stage 1: ctx (scratch)                                          │
-│   - Copies build_files/ and flatpak/ into build context         │
+│   - Copies build_files/ and system_files/ into build context    │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ Stage 2: cloud-ublue (FROM ghcr.io/ublue-os/bluefin:stable)    │
+│   - Copies system_files/ (etc/ overlay) into the image root     │
 │   - Copies cosign.pub for container signing verification        │
 │   - Runs build.sh (main customization script)                   │
 │   - Runs bootc container lint                                   │
@@ -55,8 +56,24 @@ Two workflows automate the build pipeline:
 - **Base:** `ghcr.io/ublue-os/bluefin:stable`
 - **Build stages:** `ctx` → `cloud-ublue` → `thinkpad-ublue`
 - **Signing:** Copies `cosign.pub` to `/etc/pki/containers/cloud.pub`
+- **System files:** Bakes `system_files/etc/` into the image via `COPY --from=ctx /files/ /`
 - **Build mounts:** Uses bind mounts for cache, tmpfs, and build context
 - **Linting:** Runs `bootc container lint` on each stage
+
+#### `/etc` vs `/usr/etc`
+
+Image configuration belongs in `/etc`. On install/upgrade, bootc generates the
+deployment's `/usr/etc` defaults from the image's `/etc` and performs a 3-way
+merge into the writable `/etc`: the new defaults are the base, the local diff is
+applied, and locally modified files are retained (`ostree admin config-diff`
+shows local changes; metadata changes such as uid/gid count as modifications).
+
+Do **not** create `/usr/etc` in the container image. It is a client-side bootc
+implementation detail, and `bootc container lint` fails its `etc-usretc` check
+when both `/etc` and `/usr/etc` exist. Configuration that must never be merged
+with local changes can live under `/usr/share` or `/usr/lib` (e.g. vendor
+polkit rules in `/usr/share/polkit-1/rules.d`, systemd units in
+`/usr/lib/systemd/system`).
 
 ### 2. build_files/build.sh (Base Customizations)
 Installs and configures:
@@ -64,7 +81,7 @@ Installs and configures:
 - **Packages:** `lact`, `libvirt-devel`, `mangohud`, `pipx`, `keepassxc`, `firefox`, `git-lfs`, `clustershell`, `vmaf` tools, `rasdaemon`
 - **Custom RPMs:** `r2modmanPlus`, `Devsy` (installed via direct RPM URLs)
 - **Services enabled:** `netbird`, `lactd`, `rasdaemon`
-- **System flatpaks:** Copies flatpak lists to `/etc/ublue-os/`
+- **System flatpaks:** Lists live in `system_files/etc/ublue-os/` and are baked in by the Containerfile
 - **/opt handling:** Symlinks `/opt` → `/var/opt` for packages needing writable /opt
 
 ### 3. build_files/build_thinkpad.sh (ThinkPad Variant)
@@ -109,15 +126,25 @@ Additional ThinkPad-specific customizations:
 | Command | Description |
 |---------|-------------|
 | `just build [image] [tag]` | Build container image locally with podman |
-| `just build-qcow2` | Build QCOW2 VM image |
+| `just build-qcow2` | Convert the existing local image to QCOW2 (does not rebuild the image) |
+| `just rebuild-qcow2` | Rebuild (build + convert) QCOW2, then verify the disk |
+| `just verify-qcow2` | Walk `system_files/` and assert every entry (dirs, files, symlinks) in a built disk |
 | `just build-raw` | Build RAW VM image |
 | `just build-iso-gnome` | Build GNOME ISO installer |
-| `just rebuild-qcow2` | Rebuild (build + convert) QCOW2 |
 | `just run-vm-qcow2` | Run QCOW2 in QEMU with web VNC |
 | `just spawn-vm` | Run VM via systemd-vmspawn |
 | `just lint` | Shellcheck all .sh files |
 | `just format` | shfmt format all .sh files |
 | `just clean` | Remove build artifacts |
+
+> **Disk builds use the existing image.** `build-qcow2` converts whatever image
+> is in local/rootful podman storage; it does not rebuild the container image.
+> Run `just rebuild-qcow2` (or `just build` first) after changing
+> `Containerfile`, `build_files/`, or `system_files/`. `_check_image_system_files`
+> aborts the conversion if the image lacks any entry from the `system_files/`
+> overlay, and `verify-qcow2` walks that overlay and checks the deployment inside
+> the produced disk entry by entry with libguestfs (types, symlink targets,
+> byte-for-byte file contents), so a stale disk is caught without booting a VM.
 
 ### 7. CI/CD Configuration
 
@@ -168,7 +195,7 @@ To adapt this template for your own image:
 1. **Containerfile line 6:** Change `FROM ghcr.io/ublue-os/bluefin:stable` to your desired base
 2. **Justfile line 1:** Change `export image_name := "cloud-ublue"` to your image name
 3. **build_files/build.sh:** Add your package installations and system customizations
-4. **flatpak/*.list:** Modify Flatpak applications to include
+4. **system_files/etc/ublue-os/*.list:** Modify Flatpak applications to include
 5. **disk_config/*.toml:** Adjust disk layouts and installer behavior
 6. **artifacthub-repo.yml:** Update `repositoryID` and `owners` for ArtifactHub publishing
 7. **GitHub Secrets:** Add `SIGNING_SECRET` (cosign private key), optionally S3 credentials

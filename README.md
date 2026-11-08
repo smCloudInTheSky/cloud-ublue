@@ -126,6 +126,10 @@ This should queue your image for the next reboot, which you can do immediately a
 
 The [Containerfile](./Containerfile) defines the operations used to customize the selected image.This file is the entrypoint for your image build, and works exactly like a regular podman Containerfile. For reference, please see the [Podman Documentation](https://docs.podman.io/en/latest/Introduction.html).
 
+### Configuration files: `/etc` vs `/usr/etc`
+
+Put image configuration in `/etc`. Do not create `/usr/etc` in the container image: bootc generates it on the installed system from the image's `/etc` and performs a 3-way merge into the writable `/etc`, so files added to `/etc` here become the defaults for deployed systems. `bootc container lint` rejects images that ship `/usr/etc` (check `etc-usretc`). Content that must stay immutable and never be merged belongs under `/usr/share` or `/usr/lib` (for example vendor polkit rules and systemd units).
+
 ## build.sh
 
 The [build.sh](./build_files/build.sh) file is called from your Containerfile. It is the best place to install new packages or make any other customization to your system. There are customization examples contained within it for your perusal.
@@ -197,7 +201,12 @@ The below commands all build QCOW2 images. To produce or use a different type of
 
 ### `just build-qcow2`
 
-Builds a QCOW2 virtual machine image.
+Builds a QCOW2 virtual machine image from the image already present in local
+podman storage. It does **not** rebuild the container image, so run `just build`
+first (or use `just rebuild-qcow2`) after changing `Containerfile`,
+`build_files/`, or `system_files/`. The build aborts if the image is missing
+files from `system_files/`, and the produced disk is verified automatically
+(see `just verify-qcow2`).
 
 ```bash
 just build-qcow2 $target_image $tag
@@ -205,10 +214,27 @@ just build-qcow2 $target_image $tag
 
 ### `just rebuild-qcow2`
 
-Rebuilds a QCOW2 virtual machine image.
+Builds the container image first, then converts it to a QCOW2 image and
+verifies the disk.
 
 ```bash
 just rebuild-vm $target_image $tag
+```
+
+### `just verify-qcow2`
+
+Inspects a built disk with libguestfs (no VM boot required) and walks the
+`system_files/` overlay: every directory, regular file and symlink must exist at
+the same relative path in the bootc deployment. Regular files are downloaded and
+compared byte-for-byte with their source. A deployed file may be larger when a
+build script appends to it (for example the ThinkPad variant appends to
+`system-flatpaks.list`); that passes as long as the source is a byte-prefix of
+the deployed file. Pass a second argument to compare against another overlay
+directory.
+
+```bash
+just verify-qcow2 output/qcow2/disk.qcow2
+just verify-qcow2 output/qcow2/disk.qcow2 system_files
 ```
 
 ### `just run-vm-qcow2`
