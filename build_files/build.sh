@@ -122,6 +122,7 @@ echo "::group:: Install gaming packages"
 
 STEAM_PACKAGES=(
     scx-scheds
+    scx-tools
     terra-gamescope.x86_64
     terra-gamescope-libs.x86_64
     terra-gamescope-libs.i686
@@ -172,8 +173,11 @@ rpmdb --verifydb
 echo "::endgroup::"
 
 echo "::group:: Enable services + cleanup"
-# /etc/gamemode.ini, the polkit rule, and the system flatpak lists are baked in
-# from system_files/ by the Containerfile.
+# No `systemctl daemon-reload` here: the build runs without systemd as PID 1, so
+# it exits 1 and `set -e` aborts the build. `systemctl enable` only creates the
+# .wants/ symlinks and works fine offline.
+# /etc/gamemode.ini, the polkit rule, scx.service and the system flatpak lists
+# are baked in from system_files/ by the Containerfile.
 systemctl enable lactd rasdaemon docker.socket podman.socket netbird scx
 ${DNF} copr disable ilyaz/LACT
 echo "::endgroup::"
