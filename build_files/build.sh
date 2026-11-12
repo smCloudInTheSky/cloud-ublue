@@ -161,7 +161,11 @@ fi
 echo "::group:: Install devsy / r2modman"
 ${DNF} install -y \
     https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm \
-    https://github.com/devsy-org/devsy/releases/download/v1.24.0/Devsy_linux_x86_64.rpm
+    https://github.com/devsy-org/devsy/releases/download/v1.26.0/Devsy_linux_x86_64.rpm
+
+echo "rpm --justdb start"
+rpm -e --justdb --nodeps devsy-desktop
+echo "rpm --justdb done"
 
 # Docker CE creates this group in /etc/group but does not ship a sysusers.d file.
 install -D -m 0644 /dev/stdin /usr/lib/sysusers.d/docker.conf <<'EOF'
