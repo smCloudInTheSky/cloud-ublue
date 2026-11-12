@@ -12,6 +12,9 @@ ${DNF} remove tailscale
 # COPR: LACT (GPU control daemon)
 ${DNF} copr enable ilyaz/LACT
 
+# COPR: sched_ext cachyos
+${DNF} copr enable bieszczaders/kernel-cachyos-addons
+
 # Docker CE
 ${DNF} config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 
@@ -118,6 +121,8 @@ echo "::endgroup::"
 echo "::group:: Install gaming packages"
 
 STEAM_PACKAGES=(
+    scx-scheds
+    scx-tools
     terra-gamescope.x86_64
     terra-gamescope-libs.x86_64
     terra-gamescope-libs.i686
@@ -145,26 +150,39 @@ ${DNF} --enable-repo=terra-mesa --enable-repo=terra --setopt=install_weak_deps=F
 
 echo "::endgroup::"
 
-# /opt is read-only in the final bootc image; relocate it to writable /var/opt.
-# (bluefin may already ship this symlink — this is idempotent either way.)
-rm -rf /opt
-mkdir -p /var/opt
-ln -s /var/opt /opt
+# Keep application payloads in immutable /opt instead of persisting them in /var.
+# Bluefin may provide /opt as a symlink to /var/opt; replace that symlink with
+# an image-owned directory before installing third-party RPMs below.
+if [[ -L /opt ]]; then
+    rm /opt
+    mkdir -p /opt
+fi
 
 echo "::group:: Install devsy / r2modman"
-${DNF} install \
+${DNF} install -y \
     https://github.com/ebkr/r2modmanPlus/releases/download/v3.2.20/r2modman-3.2.20.x86_64.rpm \
     https://github.com/devsy-org/devsy/releases/download/v1.26.0/Devsy_linux_x86_64.rpm
 
 rpm -e --justdb --nodeps r2modman devsy-desktop
+    https://github.com/devsy-org/devsy/releases/download/v1.24.0/Devsy_linux_x86_64.rpm
+
+# Docker CE creates this group in /etc/group but does not ship a sysusers.d file.
+install -D -m 0644 /dev/stdin /usr/lib/sysusers.d/docker.conf <<'EOF'
+g docker -
+EOF
+
+rpmdb --verifydb
+
 echo "::endgroup::"
 
 echo "::group:: Enable services + cleanup"
-systemctl enable lactd rasdaemon docker.socket podman.socket netbird
+# No `systemctl daemon-reload` here: the build runs without systemd as PID 1, so
+# it exits 1 and `set -e` aborts the build. `systemctl enable` only creates the
+# .wants/ symlinks and works fine offline.
+# /etc/gamemode.ini, the polkit rule, scx.service and the system flatpak lists
+# are baked in from system_files/ by the Containerfile.
+systemctl enable lactd rasdaemon docker.socket podman.socket netbird scx
 ${DNF} copr disable ilyaz/LACT
-
-# Update system flatpak list
-cp /ctx/flatpak/*system*flatpak*.list /etc/ublue-os/
 echo "::endgroup::"
 
 echo 'Base build complete.'

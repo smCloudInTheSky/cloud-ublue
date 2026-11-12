@@ -1,9 +1,18 @@
 # Allow build scripts to be referenced without being copied into the final image
 FROM scratch AS ctx
 COPY build_files /build_files/
-COPY flatpak /flatpak
+COPY system_files /files
 
-FROM ghcr.io/ublue-os/bluefin:stable@sha256:305830a778fd43bac87eac1b326e9f9485f66cbf5d7cd4fd940294f945cc5d67 as cloud-ublue
+FROM ghcr.io/ublue-os/bluefin:stable@sha256:0faf039c14b319838ba0d91aa5aa41faf53d932659e30b89adf0eeac275d85cf as cloud-ublue
+
+# Static system configuration (gamemode.ini, polkit rules, flatpak lists).
+# Keep defaults in /etc: on install/upgrade bootc turns the image's /etc into
+# the deployment's /usr/etc defaults and 3-way merges them into the writable
+# /etc. Never copy files to /usr/etc here -- it is generated client-side and
+# `bootc container lint` fails the etc-usretc check when /usr/etc exists.
+# Copied before the build scripts run so build.sh and build_thinkpad.sh
+# can rely on these files already being present under /etc.
+COPY --chown=0:0 --from=ctx /files/ /
 
 COPY cosign.pub /etc/pki/containers/cloud.pub
 
@@ -15,7 +24,10 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/build_files/build.sh && \
     ostree container commit
 
-RUN bootc container lint
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    bash /ctx/build_files/bootc-postprocess.sh
+
+RUN bootc container lint --fatal-warnings --no-truncate
 
 FROM cloud-ublue as thinkpad-ublue
 
@@ -26,4 +38,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/build_files/build_thinkpad.sh && \
     ostree container commit
 
-RUN bootc container lint
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    bash /ctx/build_files/bootc-postprocess.sh
+
+RUN bootc container lint --fatal-warnings --no-truncate
