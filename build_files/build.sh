@@ -165,6 +165,7 @@ ${DNF} install -y \
 
 echo "rpm --justdb start"
 rpm -e --justdb --nodeps devsy-desktop
+rpm -e --justdb --nodeps r2modman
 echo "rpm --justdb done"
 
 # Docker CE creates this group in /etc/group but does not ship a sysusers.d file.
