@@ -41,6 +41,21 @@
       // so the match spans the whole URL and autoReplaceStringTemplate rewrites both
       // occurrences (the filename carries no "v" prefix).
       "customType": "regex",
+      "managerFilePatterns": ["/build_files/build_thinkpad.sh/"],
+      "matchStrings": [
+        "erpalma/throttled/releases/download/v(?<version>[\\d.]+)/throttled-[\\d.]+\\-1.noarch\\.rpm"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "erpalma/throttled",
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "v{{version}}",
+      "autoReplaceStringTemplate": "erpalma/throttled/releases/download/{{newValue}}/throttled-{{replace \"^v\" \"\" newValue}}-1.noarch.rpm"
+    },
+    {
+      // r2modman's release URL contains the version twice (tag path + RPM filename),
+      // so the match spans the whole URL and autoReplaceStringTemplate rewrites both
+      // occurrences (the filename carries no "v" prefix).
+      "customType": "regex",
       "managerFilePatterns": ["/build_files/build.sh/"],
       "matchStrings": [
         "r2modmanPlus/releases/download/v(?<version>[\\d.]+)/r2modman-[\\d.]+\\.x86_64\\.rpm"

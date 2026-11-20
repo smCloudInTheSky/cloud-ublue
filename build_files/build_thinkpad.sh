@@ -3,12 +3,11 @@
 set -oue pipefail
 
 echo "::group:: Configure thinkpad tooling"
-dnf -y copr enable abn/throttled
 dnf -y copr enable sneexy/python-validity
 dnf -y remove tuned tuned-ppd
-dnf -y install --allowerasing igt-gpu-tools fprintd-clients fprintd-clients-pam open-fprintd python3-validity tlp tlp-rdw throttled zcfan
+dnf -y install https://github.com/erpalma/throttled/releases/download/v0.13/throttled-0.13-1.noarch.rpm
+dnf -y install --allowerasing igt-gpu-tools fprintd-clients fprintd-clients-pam open-fprintd python3-validity tlp tlp-rdw zcfan
 
-dnf -y copr disable abn/throttled
 dnf -y copr disable sneexy/python-validity
 dnf clean all
 
