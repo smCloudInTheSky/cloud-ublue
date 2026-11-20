@@ -3,7 +3,7 @@ FROM scratch AS ctx
 COPY build_files /build_files/
 COPY system_files /files
 
-FROM ghcr.io/ublue-os/bluefin:stable@sha256:cb2e0f54caffb681ca4405d34236591a378430102e1704c6b2c78e3ff969f8bf as cloud-ublue
+FROM ghcr.io/ublue-os/bluefin:stable@sha256:05475fa4c2285bd07ba31e84346bfe050e57a69862568b46188cd960b0811e87 as cloud-ublue
 
 # Static system configuration (gamemode.ini, polkit rules, flatpak lists).
 # Keep defaults in /etc: on install/upgrade bootc turns the image's /etc into
