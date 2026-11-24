@@ -27,17 +27,24 @@
       "groupName": "base-images"
     },
     {
-      "description": "Auto-merge patch/minor updates for r2modmanPlus and Devsy RPMs (majors stay manual)",
+      "description": "Auto-merge updates for r2modmanPlus and Devsy RPMs)",
       "automerge": true,
       "matchFileNames": ["build_files/build.sh"],
       "matchDepNames": ["ebkr/r2modmanPlus", "devsy-org/devsy"],
-      "matchUpdateTypes": ["patch", "minor"]
+      "matchUpdateTypes": ["patch", "minor","major"]
+    },
+    {
+      "description": "Auto-merge updates for throttled",
+      "automerge": true,
+      "matchFileNames": ["build_files/build_thinkpad.sh"],
+      "matchDepNames": ["erpalma/throttled"],
+      "matchUpdateTypes": ["patch", "minor","major"]
     }
   ],
 
   "customManagers": [
     {
-      // r2modman's release URL contains the version twice (tag path + RPM filename),
+      // throttled's release URL contains the version twice (tag path + RPM filename),
       // so the match spans the whole URL and autoReplaceStringTemplate rewrites both
       // occurrences (the filename carries no "v" prefix).
       "customType": "regex",
