@@ -54,7 +54,7 @@
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "erpalma/throttled",
-      "versioningTemplate": "semver",
+      "versioningTemplate": "semver-coerced",
       "currentValueTemplate": "v{{version}}",
       "autoReplaceStringTemplate": "erpalma/throttled/releases/download/{{newValue}}/throttled-{{replace \"^v\" \"\" newValue}}-1.noarch.rpm"
     },
